@@ -8,6 +8,7 @@ import {
 
 import { IntegrationsPluginSetup, IntegrationsPluginStart } from './types';
 import { defineRoutes } from './routes';
+import { integrationStatusSavedObject, integrationStatusType } from './saved_objects/integration_status';
 
 export class IntegrationsPlugin
   implements Plugin<IntegrationsPluginSetup, IntegrationsPluginStart> {
@@ -24,7 +25,12 @@ export class IntegrationsPlugin
     // Register server side APIs
     defineRoutes(router);
 
-    return {};
+    // Register saved object types
+    core.savedObjects.registerType(integrationStatusSavedObject);
+
+    return {
+      getIntegrationStatusType: () => integrationStatusType
+    };
   }
 
   public start(core: CoreStart) {

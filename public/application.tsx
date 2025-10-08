@@ -5,7 +5,7 @@ import { AppPluginStartDependencies } from './types';
 import { IntegrationsApp } from './components/app';
 
 export const renderApp = (
-  { notifications, http }: CoreStart,
+  { notifications, http, savedObjects }: CoreStart,
   { navigation }: AppPluginStartDependencies,
   { appBasePath, element }: AppMountParameters
 ) => {
@@ -14,6 +14,7 @@ export const renderApp = (
       basename={appBasePath}
       notifications={notifications}
       http={http}
+      savedObjects={savedObjects}
       navigation={navigation}
     />,
     element

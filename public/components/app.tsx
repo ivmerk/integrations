@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
-import { i18n } from '@osd/i18n';
 import { FormattedMessage, I18nProvider } from '@osd/i18n/react';
 import { BrowserRouter as Router } from 'react-router-dom';
+
+interface ApiError extends Error {
+  res?: {
+    status?: number;
+    data?: {
+      error?: {
+        message: string;
+      };
+    };
+  };
+}
 
 import {
   EuiButton,
@@ -25,6 +35,7 @@ interface IntegrationsAppDeps {
   basename: string;
   notifications: CoreStart['notifications'];
   http: CoreStart['http'];
+  savedObjects: CoreStart['savedObjects'];
   navigation: NavigationPublicPluginStart;
 }
 
@@ -32,32 +43,52 @@ export const IntegrationsApp = ({
   basename,
   notifications,
   http,
+  savedObjects,
   navigation,
 }: IntegrationsAppDeps) => {
-  // Use React hooks to manage state.
-  const [timestamp, setTimestamp] = useState<string | undefined>();
-
 
   const [buttonText, setButtonText] = useState<string | undefined>('disable');
 
-  const onButtonClickHandler = () => {
-    if (buttonText === 'disable') {
-      setButtonText('enable');
+  const onButtonClickHandler = async () => {
+    try {
+      if (buttonText === 'disable') {
+        setButtonText('enable');
+      }
+      const savedObjectsClient = savedObjects.client;
+      console.log('Attempting to save integration status...');
+      const response = await savedObjectsClient.create(
+        'integration-status',
+        {
+          integration: 'scopd',
+          enabled: true
+        },
+        {
+          id: 'scopd-status',
+          overwrite: true
+        }
+      );
+      console.log('Save successful:', response);
+      notifications.toasts.addSuccess('Integration status updated successfully');
+    } catch (error: unknown) {
+
+      const apiError = error as ApiError;
+
+      console.error('Error details:', {
+        name: apiError?.name,
+        message: apiError?.message,
+        statusCode: apiError?.res?.status,
+        error: apiError?.res?.data,
+        stack: apiError?.stack
+      });
+      const errorMessage = apiError?.res?.data?.error?.message ||
+                         apiError?.message ||
+                         'Unknown error occurred';
+      notifications.toasts.addDanger(
+        `Failed to update integration status: ${errorMessage}`
+      );
     }
   }
 
-  const onClickHandler = () => {
-    // Use the core http service to make a response to the server API.
-    http.get('/api/integrations/example').then((res) => {
-      setTimestamp(res.time);
-      // Use the core notifications service to display a success message.
-      notifications.toasts.addSuccess(
-        i18n.translate('integrations.dataUpdated', {
-          defaultMessage: 'Data updated',
-        })
-      );
-    });
-  };
 
   // Render the application DOM.
   // Note that `navigation.ui.TopNavMenu` is a stateful component exported on the `navigation` plugin's start contract.
@@ -89,7 +120,7 @@ export const IntegrationsApp = ({
                     <h2>
                       <FormattedMessage
                         id="integration.congratulationsTitle"
-                        defaultMessage="Scopd integration"
+                        defaultMessage="Scopd Integration"
                       />
                     </h2>
                   </EuiTitle>
