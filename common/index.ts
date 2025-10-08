@@ -1,2 +1,1 @@
-export const PLUGIN_ID = 'integrations';
-export const PLUGIN_NAME = 'integrations';
+export { PLUGIN_ID, PLUGIN_NAME } from './constants';

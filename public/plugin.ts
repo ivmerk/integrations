@@ -5,20 +5,33 @@ import {
   IntegrationsPluginStart,
   AppPluginStartDependencies,
 } from './types';
-import { PLUGIN_NAME } from '../common';
+import { PLUGIN_NAME, PLUGIN_ID } from '../common';
 
-export class IntegrationsPlugin
-  implements Plugin<IntegrationsPluginSetup, IntegrationsPluginStart> {
+export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, IntegrationsPluginStart> {
   public setup(core: CoreSetup): IntegrationsPluginSetup {
     // Register an application into the side navigation menu
     core.application.register({
-      id: 'integrations',
+      id: PLUGIN_ID,
       title: PLUGIN_NAME,
+      category: {
+        id: 'integrations',
+        label: 'Integrations',
+        euiIconType: 'visLine',
+        order: 100,
+      },
+      order: -1000,
       async mount(params: AppMountParameters) {
-        // Load application bundle
-        const { renderApp } = await import('./application');
         // Get start services as specified in opensearch_dashboards.json
         const [coreStart, depsStart] = await core.getStartServices();
+
+        // Set custom breadcrumbs
+        coreStart.chrome.setBreadcrumbs([
+          {
+            text: PLUGIN_NAME,
+          },
+        ]);
+        // Load application bundle
+        const { renderApp } = await import('./application');
         // Render the application
         return renderApp(coreStart, depsStart as AppPluginStartDependencies, params);
       },
