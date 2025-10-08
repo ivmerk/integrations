@@ -11,9 +11,6 @@ interface ApiError extends Error {
       };
     };
   };
-  output?: {
-    statusCode?: number;
-  };
 }
 
 import {
@@ -49,56 +46,50 @@ export const IntegrationsApp = ({
   savedObjects,
   navigation,
 }: IntegrationsAppDeps) => {
+
   const [buttonText, setButtonText] = useState<string | undefined>('disable');
 
-  const onObjectWriteButtonClickHandler = async () => {
+  const onButtonClickHandler = async () => {
     try {
       if (buttonText === 'disable') {
         setButtonText('enable');
       }
-        const res = await fetch('/api/integrations/scopd/status');
-        const data = await res.json();
-        console.log('Scopd Integration enabled:', data);
-      } catch (error: unknown) {
-        const apiError = error as ApiError;
-        if (
-          apiError.output?.statusCode === 404
-        )  {
-          console.log('No saved object yet');
-        } else {
-          console.error('Error loading integration status:', error instanceof Error ? error.message : String(error));
+      const savedObjectsClient = savedObjects.client;
+      console.log('Attempting to save integration status...');
+      const response = await savedObjectsClient.create(
+        'integration-status',
+        {
+          integration: 'scopd',
+          enabled: true
+        },
+        {
+          id: 'scopd-status',
+          overwrite: true
         }
-      }
-  };
-  const onObjectReadButtonClickHandler = async () => {
-    try {
-      const res = await fetch('/api/integrations/scopd/status');
-      const data = await res.json();
-      console.log('Scopd Integration enabled:', data);
+      );
+      console.log('Save successful:', response);
+      notifications.toasts.addSuccess('Integration status updated successfully');
     } catch (error: unknown) {
+
       const apiError = error as ApiError;
-      if (
-        apiError.output?.statusCode === 404
-      )  {
-        console.log('No saved object yet');
-      } else {
-        console.error('Error loading integration status:', error instanceof Error ? error.message : String(error));
-      }
-    };
-    try {
-      const ruleRes = await fetch('/api/integrations/scopd/rule');
-      const rule = await ruleRes.json();
-      console.log("file", rule);
-    } catch (error: unknown) {
-      const apiError = error as ApiError;
-      if (
-        apiError.output?.statusCode === 404
-      )  {
-        console.log('No saved object yet');
-      } else {
-        console.error('Error loading integration status:', error instanceof Error ? error.message : String(error));}
+
+      console.error('Error details:', {
+        name: apiError?.name,
+        message: apiError?.message,
+        statusCode: apiError?.res?.status,
+        error: apiError?.res?.data,
+        stack: apiError?.stack
+      });
+      const errorMessage = apiError?.res?.data?.error?.message ||
+                         apiError?.message ||
+                         'Unknown error occurred';
+      notifications.toasts.addDanger(
+        `Failed to update integration status: ${errorMessage}`
+      );
     }
-  };
+  }
+
+
   // Render the application DOM.
   // Note that `navigation.ui.TopNavMenu` is a stateful component exported on the `navigation` plugin's start contract.
   return (
@@ -144,21 +135,8 @@ export const IntegrationsApp = ({
                         values={{ text: buttonText || 'Unknown' }}
                       />
                     </p>
-                    <EuiButton type="primary" size="s" onClick={onObjectWriteButtonClickHandler}>
-                      <FormattedMessage id="integration.buttonText" defaultMessage="write object" />
-                    </EuiButton>
-                  </EuiText>
-                  <EuiText>
-                    <EuiHorizontalRule />
-                    <p>
-                      <FormattedMessage
-                        id="integration.buttonText"
-                        defaultMessage="Field text: {text}"
-                        values={{ text: buttonText || 'Unknown' }}
-                      />
-                    </p>
-                    <EuiButton type="primary" size="s" onClick={onObjectReadButtonClickHandler}>
-                      <FormattedMessage id="integration.buttonText" defaultMessage="read object" />
+                    <EuiButton type="primary" size="s" onClick={onButtonClickHandler}>
+                      <FormattedMessage id="integration.buttonText" defaultMessage="Button" />
                     </EuiButton>
                   </EuiText>
                 </EuiPageContentBody>
@@ -166,6 +144,7 @@ export const IntegrationsApp = ({
             </EuiPageBody>
           </EuiPage>
         </>
+
       </I18nProvider>
     </Router>
   );

@@ -9,7 +9,10 @@ import {
 
 import { IntegrationsPluginSetup, IntegrationsPluginStart } from './types';
 import { defineRoutes } from './routes';
-import { integrationStatusSavedObject, integrationStatusType } from './saved_objects/integration_status';
+import {
+  integrationStatusSavedObject,
+  integrationStatusType,
+} from './saved_objects/integration_status';
 
 interface IntegrationStatusAttributes {
   integration: string;
