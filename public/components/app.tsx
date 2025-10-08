@@ -37,6 +37,15 @@ export const IntegrationsApp = ({
   // Use React hooks to manage state.
   const [timestamp, setTimestamp] = useState<string | undefined>();
 
+
+  const [buttonText, setButtonText] = useState<string | undefined>('disable');
+
+  const onButtonClickHandler = () => {
+    if (buttonText === 'disable') {
+      setButtonText('enable');
+    }
+  }
+
   const onClickHandler = () => {
     // Use the core http service to make a response to the server API.
     http.get('/api/integrations/example').then((res) => {
@@ -67,7 +76,7 @@ export const IntegrationsApp = ({
                 <EuiTitle size="l">
                   <h1>
                     <FormattedMessage
-                      id="integrations.helloWorldText"
+                      id="integration.helloWorldText"
                       defaultMessage="{name}"
                       values={{ name: PLUGIN_NAME }}
                     />
@@ -79,30 +88,24 @@ export const IntegrationsApp = ({
                   <EuiTitle>
                     <h2>
                       <FormattedMessage
-                        id="integrations.congratulationsTitle"
-                        defaultMessage="Congratulations, you have successfully created a new OpenSearch Dashboards Plugin!"
+                        id="integration.congratulationsTitle"
+                        defaultMessage="Scopd integration"
                       />
                     </h2>
                   </EuiTitle>
                 </EuiPageContentHeader>
                 <EuiPageContentBody>
                   <EuiText>
-                    <p>
-                      <FormattedMessage
-                        id="integrations.content"
-                        defaultMessage="Look through the generated code and check out the plugin development documentation."
-                      />
-                    </p>
                     <EuiHorizontalRule />
                     <p>
                       <FormattedMessage
-                        id="integrations.timestampText"
-                        defaultMessage="Last timestamp: {time}"
-                        values={{ time: timestamp ? timestamp : 'Unknown' }}
+                        id="integration.buttonText"
+                        defaultMessage="Field text: {text}"
+                        values={{ text: buttonText || 'Unknown' }}
                       />
                     </p>
-                    <EuiButton type="primary" size="s" onClick={onClickHandler}>
-                      <FormattedMessage id="integrations.buttonText" defaultMessage="Get data" />
+                    <EuiButton type="primary" size="s" onClick={onButtonClickHandler}>
+                      <FormattedMessage id="integration.buttonText" defaultMessage="Button" />
                     </EuiButton>
                   </EuiText>
                 </EuiPageContentBody>
@@ -110,6 +113,7 @@ export const IntegrationsApp = ({
             </EuiPageBody>
           </EuiPage>
         </>
+
       </I18nProvider>
     </Router>
   );

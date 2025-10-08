@@ -2,3 +2,8 @@
 /target
 /node_modules
 yarn.lock
+# JetBrains IDE
+.idea/
+*.iws
+*.iml
+*.ipr
