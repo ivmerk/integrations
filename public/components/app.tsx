@@ -46,7 +46,6 @@ export const IntegrationsApp = ({
   savedObjects,
   navigation,
 }: IntegrationsAppDeps) => {
-
   const [buttonText, setButtonText] = useState<string | undefined>('disable');
 
   const onButtonClickHandler = async () => {
@@ -60,36 +59,29 @@ export const IntegrationsApp = ({
         'integration-status',
         {
           integration: 'scopd',
-          enabled: true
+          enabled: true,
         },
         {
           id: 'scopd-status',
-          overwrite: true
+          overwrite: true,
         }
       );
       console.log('Save successful:', response);
       notifications.toasts.addSuccess('Integration status updated successfully');
     } catch (error: unknown) {
-
       const apiError = error as ApiError;
-
       console.error('Error details:', {
         name: apiError?.name,
         message: apiError?.message,
         statusCode: apiError?.res?.status,
         error: apiError?.res?.data,
-        stack: apiError?.stack
+        stack: apiError?.stack,
       });
-      const errorMessage = apiError?.res?.data?.error?.message ||
-                         apiError?.message ||
-                         'Unknown error occurred';
-      notifications.toasts.addDanger(
-        `Failed to update integration status: ${errorMessage}`
-      );
+      const errorMessage =
+        apiError?.res?.data?.error?.message || apiError?.message || 'Unknown error occurred';
+      notifications.toasts.addDanger(`Failed to update integration status: ${errorMessage}`);
     }
-  }
-
-
+  };
   // Render the application DOM.
   // Note that `navigation.ui.TopNavMenu` is a stateful component exported on the `navigation` plugin's start contract.
   return (
@@ -144,7 +136,6 @@ export const IntegrationsApp = ({
             </EuiPageBody>
           </EuiPage>
         </>
-
       </I18nProvider>
     </Router>
   );
