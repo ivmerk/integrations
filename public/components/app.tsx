@@ -49,6 +49,7 @@ export const IntegrationsApp = ({
 
   const [buttonText, setButtonText] = useState<string | undefined>('disable');
 
+  console.log('buttonText: ', buttonText);
   const onButtonClickHandler = async () => {
     try {
       if (buttonText === 'disable') {
@@ -135,7 +136,7 @@ export const IntegrationsApp = ({
                         values={{ text: buttonText || 'Unknown' }}
                       />
                     </p>
-                    <EuiButton type="primary" size="s" onClick={onButtonClickHandler}>
+                    <EuiButton type="primary" size="s" onClick={onButtonClickHandler} isDisabled={buttonText === 'enable'}>
                       <FormattedMessage id="integration.buttonText" defaultMessage="asdfas" />
                     </EuiButton>
                   </EuiText>
