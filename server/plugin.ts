@@ -1,4 +1,3 @@
-import fetch from 'node-fetch';
 import {
   PluginInitializerContext,
   CoreSetup,
@@ -13,6 +12,7 @@ import {
   integrationStatusSavedObject,
   integrationStatusType,
 } from './saved_objects/integration_status';
+import {authenticateWazuh} from "../common/fetch_wazuh_manager_sevice";
 
 interface IntegrationStatusAttributes {
   integration: string;
@@ -32,7 +32,6 @@ export class IntegrationsPlugin
     this.logger.debug('integrations: Setup');
     const router = core.http.createRouter();
     // 2. Push rule file to Wazuh Manager
-    const WAZUH_API = 'https://localhost:55000';
 
     // Register server side APIs
     defineRoutes(router);
@@ -43,68 +42,63 @@ export class IntegrationsPlugin
       async (context, request, response) => {
         const savedObjectsClient = context.core.savedObjects.client;
         try {
+          // First, try to get the saved object
           const obj = await savedObjectsClient.get<IntegrationStatusAttributes>('integration-status', 'scopd-status');
           return response.ok({
             body: {
               integration: obj.attributes.integration,
               enabled: obj.attributes.enabled,
+              wazuhConnected: true
             },
           });
-        } catch (error: unknown) {
-          const e = error as { output?: { statusCode?: number }, message?: string };
-          if (e.output?.statusCode === 404) {
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          this.logger.error('Error message', { error: errorMessage });
+          if ((error as any).output?.statusCode === 404) {
             return response.ok({
-              body: { integration: 'scopd', enabled: false },
+              body: {
+                integration: 'scopd',
+                enabled: false,
+                wazuhConnected: false,
+                error: 'No configuration found'
+              },
             });
           }
           return response.customError({
             statusCode: 500,
-            body: { message: e.message || 'An unknown error occurred' },
+            body: {
+              message: `Failed to get status: ${errorMessage}`,
+              attributes: {
+                details: error
+              }
+            },
           });
         }
       }
     );
-
     router.post(
-      { path: '/api/integrations/scopd/enable', validate: false },
+      { path: '/api/integrations/wazuh/authenticate', validate: false },
       async (context, request, response) => {
-
-        const savedObjectsClient = context.core.savedObjects.client;
         try {
-          // 1. Check existing status
-          let existing: IntegrationStatusAttributes | null;
-          try {
-            const obj = await savedObjectsClient.get<IntegrationStatusAttributes>('integration-status', 'scopd-status');
-            existing = obj.attributes;
-          } catch {
-            existing = null;
-          }
-          if (existing?.enabled) {
-            return response.ok({body: {message: 'Already enabled'}});
-          }
-
-          const ruleContent = `
-<group name="scopd,">
-  <rule id="100900" level="12">
-    <description>SCOPD Integration rule</description>
-  </rule>
-</group>`.trim();
-
-          // 4. Save new status
-          await savedObjectsClient.create(
-            'integration-status',
-            { integration: 'scopd', enabled: true },
-            { id: 'scopd-status', overwrite: true }
-          );
-
+          console.log('Authenticating with Wazuh API...');
+          const token = await authenticateWazuh();
+          console.log('Authentication successful');
           return response.ok({
-            body: { message: 'Scopd integration enabled and manager reloaded' },
+            body: {
+              success: true,
+              token
+            }
           });
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+          console.error('Wazuh authentication error:', error);
           return response.customError({
             statusCode: 500,
-            body: { message: errorMessage },
+            body: {
+              message: error instanceof Error ? error.message : String(error),
+              attributes: {
+                details: error instanceof Error ? error.toString() : String(error)
+              }
+            }
           });
         }
       }

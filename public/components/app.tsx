@@ -1,18 +1,6 @@
 import React, { useState } from 'react';
 import { FormattedMessage, I18nProvider } from '@osd/i18n/react';
 import { BrowserRouter as Router } from 'react-router-dom';
-
-interface ApiError extends Error {
-  res?: {
-    status?: number;
-    data?: {
-      error?: {
-        message: string;
-      };
-    };
-  };
-}
-
 import {
   EuiButton,
   EuiHorizontalRule,
@@ -25,12 +13,20 @@ import {
   EuiTitle,
   EuiText,
 } from '@elastic/eui';
-
 import { CoreStart } from '../../../../src/core/public';
 import { NavigationPublicPluginStart } from '../../../../src/plugins/navigation/public';
-
 import { PLUGIN_ID, PLUGIN_NAME } from '../../common';
 
+interface ApiError extends Error {
+  res?: {
+    status?: number;
+    data?: {
+      error?: {
+        message: string;
+      };
+    };
+  };
+}
 interface IntegrationsAppDeps {
   basename: string;
   notifications: CoreStart['notifications'];
@@ -82,13 +78,34 @@ export const IntegrationsApp = ({
         stack: apiError?.stack
       });
       const errorMessage = apiError?.res?.data?.error?.message ||
-                         apiError?.message ||
-                         'Unknown error occurred';
+        apiError?.message ||
+        'Unknown error occurred';
       notifications.toasts.addDanger(
         `Failed to update integration status: ${errorMessage}`
       );
     }
-  }
+    try {
+      console.log('Initiating Wazuh authentication...');
+      const response = await http.post('/api/integrations/wazuh/authenticate');
+
+      if (response.success && response.token) {
+        console.log('Wazuh authentication successful:', response.token);
+        notifications.toasts.addSuccess('Successfully authenticated with Wazuh');
+        // Handle the token (store it in state, context, or local storage)
+      } else {
+        throw new Error(response.message || 'Authentication failed');
+      }
+    } catch (error: unknown) {
+      console.error('Authentication error:', error);
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      notifications.toasts.addDanger(`Authentication failed: ${errorMessage}`);
+    }
+}
 
 
   // Render the application DOM.
