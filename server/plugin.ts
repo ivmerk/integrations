@@ -33,7 +33,6 @@ export class IntegrationsPlugin
     const router = core.http.createRouter();
     // 2. Push rule file to Wazuh Manager
     const WAZUH_API = 'https://localhost:55000';
-    const TOKEN = process.env.WAZUH_API_TOKEN; // Recommended: read from wazuh.yml
 
     // Register server side APIs
     defineRoutes(router);
@@ -66,38 +65,6 @@ export class IntegrationsPlugin
       }
     );
 
-    router.get({ path: '/api/integrations/scopd/rule', validate: false }, async (context, request, response) => {
-      try {
-        if (!TOKEN) {
-          throw new Error('WAZUH_API_TOKEN is not configured');
-        }
-
-        const wazuhRes = await fetch(`${WAZUH_API}/manager/files?path=/var/ossec/etc/rules/scopd_rule.xml`, {
-          headers: { 
-            'Authorization': `Bearer ${TOKEN}`,
-            'Content-Type': 'application/json'
-          },
-        });
-        
-        if (!wazuhRes.ok) {
-          const errorData = await wazuhRes.text();
-          throw new Error(`Wazuh API error: ${wazuhRes.status} - ${errorData}`);
-        }
-
-        const body = await wazuhRes.json();
-        return response.ok({ body });
-      } catch (error) {
-        this.logger.error(`Error fetching rule file: ${error instanceof Error ? error.message : String(error)}`);
-        return response.customError({
-          statusCode: 500,
-          body: { 
-            message: 'Failed to fetch rule file',
-            details: error instanceof Error ? error.message : String(error)
-          },
-        });
-      }
-    });
-    // === POST: Enable Scopd Integration ===
     router.post(
       { path: '/api/integrations/scopd/enable', validate: false },
       async (context, request, response) => {
@@ -122,34 +89,6 @@ export class IntegrationsPlugin
     <description>SCOPD Integration rule</description>
   </rule>
 </group>`.trim();
-
-          const uploadRes = await fetch(`${WAZUH_API}/manager/files?path=/var/ossec/etc/rules/scopd_rule.xml`, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${TOKEN}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ content: ruleContent }),
-          });
-
-          if (!uploadRes.ok) {
-            const text = await uploadRes.text();
-            throw new Error(`Upload failed: ${uploadRes.status} ${text}`);
-          }
-
-          // 3. Restart Manager to apply rules
-          const restartRes = await fetch(`${WAZUH_API}/manager/restart`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${TOKEN}`,
-              'Content-Type': 'application/json',
-            },
-          });
-
-          if (!restartRes.ok) {
-            const text = await restartRes.text();
-            throw new Error(`Reload failed: ${restartRes.status} ${text}`);
-          }
 
           // 4. Save new status
           await savedObjectsClient.create(

@@ -130,13 +130,13 @@ export const IntegrationsApp = ({
                     <EuiHorizontalRule />
                     <p>
                       <FormattedMessage
-                        id="integration.buttonText"
+                        id="integration.buttonTextLabel"
                         defaultMessage="Field text: {text}"
                         values={{ text: buttonText || 'Unknown' }}
                       />
                     </p>
                     <EuiButton type="primary" size="s" onClick={onButtonClickHandler}>
-                      <FormattedMessage id="integration.buttonText" defaultMessage="Button" />
+                      <FormattedMessage id="integration.buttonText" defaultMessage="asdfas" />
                     </EuiButton>
                   </EuiText>
                 </EuiPageContentBody>
