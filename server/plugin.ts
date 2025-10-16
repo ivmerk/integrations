@@ -1,18 +1,17 @@
-import {
+import { integrationStatusSavedObject } from './saved_objects/integration_status';
+import type {
   PluginInitializerContext,
   CoreSetup,
   CoreStart,
   Plugin,
   Logger,
 } from '../../../src/core/server';
-
 import { IntegrationsPluginSetup, IntegrationsPluginStart } from './types';
 import { defineRoutes } from './routes';
 import {
-  integrationStatusSavedObject,
   integrationStatusType,
 } from './saved_objects/integration_status';
-import {authenticateWazuh} from "../common/fetch_wazuh_manager_sevice";
+import { authenticateWazuh, uploadRuleToWazuhManager } from "../common/fetch_wazuh_manager_sevice";
 
 interface IntegrationStatusAttributes {
   integration: string;
@@ -105,6 +104,61 @@ export class IntegrationsPlugin
     );
     // Register saved object types
     core.savedObjects.registerType(integrationStatusSavedObject);
+    // Add endpoint for uploading rules
+    router.post(
+      {
+        path: '/api/integrations/wazuh/upload-rule',
+        validate: false
+      },
+      async (context, request, response) => {
+        try {
+          interface UploadRuleRequestBody {
+            token: string;
+            ruleContent: string | undefined;
+            ruleFileName?: string | undefined;
+          }
+          const { token, ruleContent, ruleFileName } = request.body as UploadRuleRequestBody;
+          if (!token) {
+            return response.badRequest({
+              body: {
+                message: 'Authentication token is required'
+              }
+            });
+          }
+
+          this.logger.info('Uploading rule to Wazuh Manager');
+
+          if (ruleFileName) {
+            await uploadRuleToWazuhManager(token, ruleContent, ruleFileName);
+          } else {
+            await uploadRuleToWazuhManager(token, ruleContent);
+          }
+
+          return response.ok({
+            body: {
+              message: 'Rule uploaded successfully',
+              attributes: {
+                fileName: ruleFileName || 'scopd_rule.xml'
+              }
+            }
+          });
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          this.logger.error(`Failed to upload rule: ${errorMessage}`, { error });
+
+          return response.customError({
+            statusCode: 500,
+            body: {
+              message: `Failed to upload rule: ${errorMessage}`,
+              attributes: {
+                success: false,
+                details: error instanceof Error ? error.toString() : String(error)
+              }
+            }
+          });
+        }
+      }
+    );
 
     return {
       getIntegrationStatusType: () => integrationStatusType,

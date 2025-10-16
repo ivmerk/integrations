@@ -50,7 +50,12 @@ export async function authenticateWazuh(): Promise<string> {
  */
 export async function uploadRuleToWazuhManager(
   token: string,
-  ruleContent: string,
+  ruleContent: string = `
+    <group name="scopd,">
+      <rule id="100900" level="12">
+        <description>SCOPD Integration rule</description>
+      </rule>
+    </group>`,
   ruleFileName: string = 'scopd_rule.xml'
 ): Promise<void> {
   const url = new URL(`/rules/files/${ruleFileName}`, 'https://localhost:55000');
