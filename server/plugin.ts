@@ -12,7 +12,7 @@ import {
   integrationStatusType,
 } from './saved_objects/integration_status';
 import { authenticateWazuh, uploadRuleToWazuhManager } from "../common/fetch_wazuh_manager_sevice";
-
+import { schema } from '@osd/config-schema';
 interface IntegrationStatusAttributes {
   integration: string;
   enabled: boolean;
@@ -108,7 +108,13 @@ export class IntegrationsPlugin
     router.post(
       {
         path: '/api/integrations/wazuh/upload-rule',
-        validate: false
+        validate: {
+          body: schema.object({
+            token: schema.string(),
+            ruleContent: schema.maybe(schema.string()),
+            ruleFileName: schema.maybe(schema.string())
+          })
+        }
       },
       async (context, request, response) => {
         try {
@@ -138,7 +144,7 @@ export class IntegrationsPlugin
             body: {
               message: 'Rule uploaded successfully',
               attributes: {
-                fileName: ruleFileName || 'scopd_rule.xml'
+                fileName: ruleFileName
               }
             }
           });

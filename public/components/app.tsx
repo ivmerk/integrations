@@ -47,10 +47,12 @@ export const IntegrationsApp = ({
 
   console.log('buttonText: ', buttonText);
   const onButtonClickHandler = async () => {
+    let token = 'YOUR_AUTH_TOKEN';
     try {
       if (buttonText === 'disable') {
         setButtonText('enable');
       }
+
       const savedObjectsClient = savedObjects.client;
       console.log('Attempting to save integration status...');
       const response = await savedObjectsClient.create(
@@ -90,6 +92,7 @@ export const IntegrationsApp = ({
 
       if (response.success && response.token) {
         console.log('Wazuh authentication successful:', response.token);
+        token = response.token;
         notifications.toasts.addSuccess('Successfully authenticated with Wazuh');
         // Handle the token (store it in state, context, or local storage)
       } else {
@@ -105,6 +108,22 @@ export const IntegrationsApp = ({
       }
       notifications.toasts.addDanger(`Authentication failed: ${errorMessage}`);
     }
+try {
+  console.log('Uploading rules started...')
+  const response = await http.post('/api/integrations/wazuh/upload-rule', {
+    body: JSON.stringify({
+      token,
+      ruleContent: '<rule id="100900" level="12"><description>SCOPD Integration rule</description></rule>',
+      ruleFileName: 'scopd_rule.xml'
+    }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  console.log('Upload success:', response);
+} catch (error: unknown) {
+  console.error('Error uploading rules:', error);
+}
 }
 
 
