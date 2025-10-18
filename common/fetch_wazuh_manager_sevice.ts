@@ -51,37 +51,35 @@ export async function authenticateWazuh(): Promise<string> {
 export async function uploadRuleToWazuhManager(
   token: string,
   ruleContent: string = `
-    <group name="scopd,">
+    <group name="scopd">
       <rule id="100900" level="12">
         <description>SCOPD Integration rule</description>
       </rule>
     </group>`,
   ruleFileName: string = 'scopd_rule.xml'
 ): Promise<void> {
-  const url = new URL(`/rules/files/${ruleFileName}`, 'https://localhost:55000');
 
-  const fetchOptions: CustomRequestInit = {
+  const url = `https://localhost:55000/rules/files/${ruleFileName}`;
+
+  // Convert to raw binary buffer (same as --data-binary)
+  const bodyBuffer = Buffer.from(ruleContent, 'utf-8');
+
+  const response = await fetch(url, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/octet-stream',
+      'Content-Length': bodyBuffer.length.toString(),
     },
-    body: ruleContent,
+    body: bodyBuffer,
     agent: httpsAgent,
-  };
+  });
 
-  try {
-    const response = await fetch(url.toString(), fetchOptions);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to upload rule: ${response.status} - ${errorText}`);
-    }
-
-    console.log(`Successfully uploaded rule file: ${ruleFileName}`);
-  } catch (error) {
-    console.error('Wazuh authentication error:', error);
-    throw error;
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`❌ Upload failed: ${response.status} ${errorText}`);
   }
+
+  console.log(`✅ Successfully uploaded ${ruleFileName} (${bodyBuffer.length} bytes)`);
 }
 
