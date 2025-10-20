@@ -11,7 +11,7 @@ import { defineRoutes } from './routes';
 import {
   integrationStatusType,
 } from './saved_objects/integration_status';
-import { authenticateWazuh, uploadRuleToWazuhManager } from "../common/fetch_wazuh_manager_sevice";
+import { authenticateWazuh, uploadRuleToWazuhManager, restartWazuhManager } from "../common/fetch_wazuh_manager_sevice";
 import { schema } from '@osd/config-schema';
 interface IntegrationStatusAttributes {
   integration: string;
@@ -117,13 +117,14 @@ export class IntegrationsPlugin
         }
       },
       async (context, request, response) => {
+        interface UploadRuleRequestBody {
+          token: string;
+          ruleContent: string | undefined;
+          ruleFileName?: string | undefined;
+        }
+
+        const {token, ruleContent, ruleFileName} = request.body as UploadRuleRequestBody;
         try {
-          interface UploadRuleRequestBody {
-            token: string;
-            ruleContent: string | undefined;
-            ruleFileName?: string | undefined;
-          }
-          const { token, ruleContent, ruleFileName } = request.body as UploadRuleRequestBody;
           if (!token) {
             return response.badRequest({
               body: {
@@ -150,7 +151,7 @@ export class IntegrationsPlugin
           });
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          this.logger.error(`Failed to upload rule: ${errorMessage}`, { error });
+          this.logger.error(`Failed to upload rule: ${errorMessage}`, {error});
 
           return response.customError({
             statusCode: 500,
@@ -163,6 +164,54 @@ export class IntegrationsPlugin
             }
           });
         }
+        ;
+      }
+    );
+
+    router.post(
+      { path: '/api/integrations/wazuh/restart',
+        validate: {
+          body: schema.object({
+            token: schema.string()
+          })
+        } },
+      async (context, request, response) => {
+        interface ManagerRestartRequestBody {
+          token: string;
+        }
+        const {token} = request.body as ManagerRestartRequestBody;
+        try {
+          if (!token) {
+            return response.badRequest({
+              body: {
+                message: 'Authentication token is required'
+              }
+            });
+          }
+          this.logger.info('Restarting Wazuh Manager');
+          await restartWazuhManager(token);
+
+          return response.ok({
+            body: {
+              message: 'Wazuh Manager restarted successfully'
+            }
+          });
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          this.logger.error(`Failed to restart Wazuh Manager: ${errorMessage}`, { error });
+
+          return response.customError({
+            statusCode: 500,
+            body: {
+              message: `Failed to restart Wazuh Manager: ${errorMessage}`,
+              attributes: {
+                success: false,
+                details: error instanceof Error ? error.toString() : String(error)
+              }
+            }
+          });
+        }
+
       }
     );
 

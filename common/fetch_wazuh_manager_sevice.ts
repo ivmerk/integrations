@@ -83,3 +83,22 @@ export async function uploadRuleToWazuhManager(
   console.log(`✅ Successfully uploaded ${ruleFileName} (${bodyBuffer.length} bytes)`);
 }
 
+
+export async function restartWazuhManager(token: string) {
+  const url = 'https://localhost:55000/manager/restart';
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    agent: httpsAgent,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`❌ Restart failed: ${response.status} ${errorText}`);
+  }
+
+  console.log('✅ Successfully restarted Wazuh Manager');
+}

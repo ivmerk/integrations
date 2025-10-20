@@ -129,6 +129,20 @@ try {
 } catch (error: unknown) {
   console.error('Error uploading rules:', error);
 }
+try {
+  console.log('Restarting Wazuh Manager...')
+  const response = await http.post('/api/integrations/wazuh/restart', {
+    body: JSON.stringify({
+      token
+    }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  console.log('Restart success:', response);
+} catch (error: unknown) {
+  console.error('Error restarting Wazuh Manager:', error);
+}
 }
 
 
