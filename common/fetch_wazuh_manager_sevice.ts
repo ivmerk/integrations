@@ -107,7 +107,31 @@ export async function uploadDecoderToWazuhManager(token: string, decoderContent:
 
   console.log(`✅ Successfully uploaded ${decoderFileName} (${bodyBuffer.length} bytes)`);
 }
-//PUT {protocol}://{host}:{port}/decoders/files/{filename}
+
+export async function uploadAgentConfToWazuhManager(token: string, agentConfContent: string, agentConfFileName: string) {
+
+  const url = `${WAZUH_MANAGER_URL}/agents/${agentConfFileName}`;
+
+  const bodyBuffer = Buffer.from(agentConfContent, 'utf-8');
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/octet-stream',
+      'Content-Length': bodyBuffer.length.toString(),
+    },
+    body: bodyBuffer,
+    agent: httpsAgent,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`❌ Upload failed: ${response.status} ${errorText}`);
+  }
+
+  console.log(`✅ Successfully uploaded ${agentConfFileName} (${bodyBuffer.length} bytes)`);
+}
 
 export async function restartWazuhManager(token: string) {
   const url = `${WAZUH_MANAGER_URL}/manager/restart`;

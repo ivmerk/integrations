@@ -1,0 +1,10 @@
+<decoder name="dlp-syslog">
+  <type>syslog</type>
+  <program_name>^(stsrv|scopd-dlp)$</program_name>
+  <prematch>(stsrv|scopd-dlp)</prematch>
+</decoder>
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>event_type="([^"]+)"</regex>
+  <order>event_type</order>
+</decoder>
