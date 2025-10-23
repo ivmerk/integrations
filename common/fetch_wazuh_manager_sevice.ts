@@ -1,6 +1,7 @@
 
 import https from 'https';
 import { URL } from 'url';
+import {WAZUH_MANAGER_URL} from "./constants";
 import fetch from 'node-fetch';
 
 // Extend the RequestInit type to include the agent property
@@ -15,7 +16,7 @@ const httpsAgent = new https.Agent({
 
 export async function authenticateWazuh(): Promise<string> {
   console.log('Calling Wazuh authentication endpoint...');
-  const url = new URL('https://0.0.0.0:55000/security/user/authenticate');
+  const url = `${WAZUH_MANAGER_URL}/security/user/authenticate`;
 
   const fetchOptions: CustomRequestInit = {
     method: 'POST',
@@ -59,9 +60,8 @@ export async function uploadRuleToWazuhManager(
   ruleFileName: string = 'scopd_rule.xml'
 ): Promise<void> {
 
-  const url = `https://localhost:55000/rules/files/${ruleFileName}`;
+  const url = `${WAZUH_MANAGER_URL}/rules/files/${ruleFileName}`;
 
-  // Convert to raw binary buffer (same as --data-binary)
   const bodyBuffer = Buffer.from(ruleContent, 'utf-8');
 
   const response = await fetch(url, {
@@ -83,9 +83,34 @@ export async function uploadRuleToWazuhManager(
   console.log(`✅ Successfully uploaded ${ruleFileName} (${bodyBuffer.length} bytes)`);
 }
 
+export async function uploadDecoderToWazuhManager(token: string, decoderContent: string, decoderFileName: string) {
+
+  const url = `${WAZUH_MANAGER_URL}/decoders/files/${decoderFileName}`;
+
+  const bodyBuffer = Buffer.from(decoderContent, 'utf-8');
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/octet-stream',
+      'Content-Length': bodyBuffer.length.toString(),
+    },
+    body: bodyBuffer,
+    agent: httpsAgent,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`❌ Upload failed: ${response.status} ${errorText}`);
+  }
+
+  console.log(`✅ Successfully uploaded ${decoderFileName} (${bodyBuffer.length} bytes)`);
+}
+//PUT {protocol}://{host}:{port}/decoders/files/{filename}
 
 export async function restartWazuhManager(token: string) {
-  const url = 'https://localhost:55000/manager/restart';
+  const url = `${WAZUH_MANAGER_URL}/manager/restart`;
 
   const response = await fetch(url, {
     method: 'PUT',
@@ -102,3 +127,5 @@ export async function restartWazuhManager(token: string) {
 
   console.log('✅ Successfully restarted Wazuh Manager');
 }
+
+//POST {protocol}://{host}:{port}/agents
