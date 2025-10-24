@@ -1,17 +1,294 @@
 import { IRouter } from '../../../../src/core/server';
+import { schema } from '@osd/config-schema';
+import {
+  authenticateWazuh, restartWazuhManager, uploadAgentConfToWazuhManager,
+  uploadDecoderToWazuhManager,
+  uploadRuleToWazuhManager
+} from '../../common/fetch_wazuh_manager_sevice';
+import { Logger } from '../../../../src/core/server';
 
-export function defineRoutes(router: IRouter) {
+interface RouteDependencies {
+  logger: Logger;
+}
+interface IntegrationStatusAttributes {
+  integration: string;
+  enabled: boolean;
+  updated_at?: string;
+}
+
+export function defineRoutes(router: IRouter, deps: RouteDependencies) {
+
   router.get(
-    {
-      path: '/api/integrations/example',
-      validate: false,
-    },
+    { path: '/api/integrations/scopd/status', validate: false },
+    async function handler (context, request, response)  {
+     const savedObjectsClient = context.core.savedObjects.client;
+     try {
+       // First, try to get the saved object
+       const obj = await savedObjectsClient.get<IntegrationStatusAttributes>('integration-status', 'scopd-status');
+       return response.ok({
+         body: {
+           integration: obj.attributes.integration,
+           enabled: obj.attributes.enabled,
+           wazuhConnected: true
+         },
+       });
+     } catch (error) {
+       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+       deps.logger.error('Error message', { error: errorMessage });
+       if ((error as any).output?.statusCode === 404) {
+         return response.ok({
+           body: {
+             integration: 'scopd',
+             enabled: false,
+             wazuhConnected: false,
+             error: 'No configuration found'
+           },
+         });
+       }
+       return response.customError({
+         statusCode: 500,
+         body: {
+           message: `Failed to get status: ${errorMessage}`,
+           attributes: {
+             details: error
+           }
+         },
+       });
+     }
+   }
+  );
+  router.post(
+    { path: '/api/integrations/wazuh/authenticate', validate: false },
     async (context, request, response) => {
-      return response.ok({
-        body: {
-          time: new Date().toISOString(),
-        },
-      });
+      try {
+        console.log('Authenticating with Wazuh API...');
+        const token = await authenticateWazuh();
+        console.log('Authentication successful');
+        return response.ok({
+          body: {
+            success: true,
+            token
+          }
+        });
+      } catch (error) {
+        console.error('Wazuh authentication error:', error);
+        return response.customError({
+          statusCode: 500,
+          body: {
+            message: error instanceof Error ? error.message : String(error),
+            attributes: {
+              details: error instanceof Error ? error.toString() : String(error)
+            }
+          }
+        });
+      }
     }
   );
+  router.post(
+    {
+      path: '/api/integrations/wazuh/upload-rule',
+      validate: {
+        body: schema.object({
+          token: schema.string(),
+          ruleContent: schema.maybe(schema.string()),
+          ruleFileName: schema.maybe(schema.string())
+        })
+      }
+    },
+    async function handler(context, request, response) {
+      interface UploadRuleRequestBody {
+        token: string;
+        ruleContent: string | undefined;
+        ruleFileName?: string | undefined;
+      }
+
+      const {token, ruleContent, ruleFileName} = request.body as UploadRuleRequestBody;
+      try {
+        if (!token) {
+          return response.badRequest({
+            body: {
+              message: 'Authentication token is required'
+            }
+          });
+        }
+        deps.logger.info('Uploading rule to Wazuh Manager');
+        if (ruleFileName) {
+          await uploadRuleToWazuhManager(token, ruleContent, ruleFileName);
+        } else {
+          await uploadRuleToWazuhManager(token, ruleContent);
+        }
+
+        return response.ok({
+          body: {
+            message: 'Rule uploaded successfully',
+            attributes: {
+              fileName: ruleFileName
+            }
+          }
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        deps.logger.error(`Failed to upload rule: ${errorMessage}`, {error});
+
+        return response.customError({
+          statusCode: 500,
+          body: {
+            message: `Failed to upload rule: ${errorMessage}`,
+            attributes: {
+              success: false,
+              details: error instanceof Error ? error.toString() : String(error)
+            }
+          }
+        });
+      }
+    }
+  );
+  // Add endpoint for uploading rules
+  router.post(
+    { path: '/api/inegrations/wazuh/upload-decoder',
+      validate: {
+        body: schema.object({
+          token: schema.string(),
+          decoderContent: schema.string(),
+          decoderFileName: schema.string()
+        })
+      } },
+    async (context, request, response) => {
+      interface UploadDecoderRequestBody {
+        token: string;
+        decoderContent: string;
+        decoderFileName: string;
+      }
+      const {token, decoderContent, decoderFileName} = request.body as UploadDecoderRequestBody;
+      try {
+        if (!token) {
+          return response.badRequest({
+            body: {
+              message: 'Authentication token is required'
+            }
+          });
+        }
+        deps.logger.info('Uploading decoder to Wazuh Manager');
+        await uploadDecoderToWazuhManager(token, decoderContent, decoderFileName);
+        return response.ok({
+          body: {
+            message: 'Decoder uploaded successfully',
+            attributes: {
+              fileName: decoderFileName
+            }
+          }
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        deps.logger.error(`Failed to upload decoder: ${errorMessage}`, {error});
+        return response.customError({
+          statusCode: 500,
+          body: {
+            message: `Failed to upload decoder: ${errorMessage}`,
+            attributes: {
+              success: false,
+              details: error instanceof Error ? error.toString() : String(error)
+            }
+          }
+        });
+      }
+    }
+  )
+  router.post(
+    { path: '/api/integrations/wazuh/upload-agent-conf',
+      validate: {
+        body: schema.object({
+          token: schema.string(),
+          agentConfContent: schema.string(),
+          agentConfFileName: schema.string()
+        })
+      } },
+    async (context, request, response) => {
+      interface UploadAgentConfRequestBody {
+        token: string;
+        agentConfContent: string;
+        agentConfFileName: string;
+      }
+      const {token, agentConfContent, agentConfFileName} = request.body as UploadAgentConfRequestBody;
+      try {
+        if (!token) {
+          return response.badRequest({
+            body: {
+              message: 'Authentication token is required'
+            }
+          });
+        }
+        deps.logger.info('Uploading agent conf to Wazuh Manager');
+        await uploadAgentConfToWazuhManager(token, agentConfContent, agentConfFileName);
+        return response.ok({
+          body: {
+            message: 'Agent conf uploaded successfully',
+            attributes: {
+              fileName: agentConfFileName
+            }
+          }
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        deps.logger.error(`Failed to upload agent conf: ${errorMessage}`, {error});
+        return response.customError({
+          statusCode: 500,
+          body: {
+            message: `Failed to upload agent conf: ${errorMessage}`,
+            attributes: {
+              success: false,
+              details: error instanceof Error ? error.toString() : String(error)
+            }
+          }
+        });
+      }
+    }
+  )
+  // === POST: Restart Wazuh Manager ===
+  router.post(
+    { path: '/api/integrations/wazuh/restart',
+      validate: {
+        body: schema.object({
+          token: schema.string()
+        })
+      } },
+    async (context, request, response) => {
+      interface ManagerRestartRequestBody {
+        token: string;
+      }
+      const {token} = request.body as ManagerRestartRequestBody;
+      try {
+        if (!token) {
+          return response.badRequest({
+            body: {
+              message: 'Authentication token is required'
+            }
+          });
+        }
+        deps.logger.info('Restarting Wazuh Manager');
+        await restartWazuhManager(token);
+
+        return response.ok({
+          body: {
+            message: 'Wazuh Manager restarted successfully'
+          }
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        deps.logger.error(`Failed to restart Wazuh Manager: ${errorMessage}`, { error });
+
+        return response.customError({
+          statusCode: 500,
+          body: {
+            message: `Failed to restart Wazuh Manager: ${errorMessage}`,
+            attributes: {
+              success: false,
+              details: error instanceof Error ? error.toString() : String(error)
+            }
+          }
+        });
+      }
+    }
+  );
+
 }
