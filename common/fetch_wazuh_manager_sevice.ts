@@ -1,7 +1,7 @@
-
+import { CONFIGURATION_FILES_PATH } from './constants';
 import https from 'https';
-import { URL } from 'url';
 import {WAZUH_MANAGER_URL} from "./constants";
+import { readFileContent } from './file_utils';
 import fetch from 'node-fetch';
 
 // Extend the RequestInit type to include the agent property
@@ -60,9 +60,10 @@ export async function uploadRuleToWazuhManager(
   ruleFileName: string = 'scopd_rule.xml'
 ): Promise<void> {
 
+  const file = await readFileContent(`${CONFIGURATION_FILES_PATH}` + ruleFileName);
   const url = `${WAZUH_MANAGER_URL}/rules/files/${ruleFileName}`;
 
-  const bodyBuffer = Buffer.from(ruleContent, 'utf-8');
+  const bodyBuffer = Buffer.from(file, 'utf-8');
 
   const response = await fetch(url, {
     method: 'PUT',

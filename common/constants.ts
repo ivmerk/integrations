@@ -1,6 +1,7 @@
 export const PLUGIN_ID = 'integrations';
 export const PLUGIN_NAME = 'Scopd';
-export const CONFIGURATION_FILES_PATH = 'plugins/integrations/custom-configuration-files';
+export const CONFIGURATION_FILES_PATH = '../custom-configuration-files/';
+
 
 export const WAZUH_MANAGER_URL = 'https://localhost:55000';
 export const SCOPD_RULES_FILE_NAME = 'scopd_rules.xml';
