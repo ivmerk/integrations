@@ -1,0 +1,14 @@
+<group name="phishing,local">
+  <rule id="100180" level="12">
+    <decoded_as>json</decoded_as>
+    <if_sid>86600</if_sid>
+    <field name="event_type">^phishing_link_click$</field>
+    <description>Phishing Simulation: User clicked on a phishing link. Email: $(user_email)</description>
+    <options>no_full_log</options>
+  </rule>
+</group>
+<group name="scopd">
+<rule id="100900" level="12">
+  <description>SCOPD Integration rule</description>
+</rule>
+</group>

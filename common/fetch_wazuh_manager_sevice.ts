@@ -1,4 +1,4 @@
-import { CONFIGURATION_FILES_PATH } from './constants';
+import {CONFIGURATION_FILES_PATH, SCOPD_RULES_CONTENT} from './constants';
 import https from 'https';
 import {WAZUH_MANAGER_URL} from "./constants";
 import { readFileContent } from './file_utils';
@@ -49,21 +49,25 @@ export async function authenticateWazuh(): Promise<string> {
  * @param ruleContent - XML content of the rule to upload
  * @param ruleFileName - Name of the rule file (e.g., 'scopd_rule.xml')
  */
+/**
+ * Uploads an XML rule file to Wazuh Manager
+ * @param token - Authentication token from Wazuh API
+ * @param ruleContent - Optional XML content of the rule to upload (if not provided, will read from file)
+ * @param ruleFileName - Name of the rule file (e.g., 'scopd_rule.xml')
+ */
 export async function uploadRuleToWazuhManager(
   token: string,
-  ruleContent: string = `
-    <group name="scopd">
-      <rule id="100900" level="12">
-        <description>SCOPD Integration rule</description>
-      </rule>
-    </group>`,
+  ruleContent?: string = `${SCOPD_RULES_CONTENT}`,
   ruleFileName: string = 'scopd_rule.xml'
 ): Promise<void> {
+  let xmlContent: string;
 
-  const file = await readFileContent(`${CONFIGURATION_FILES_PATH}` + ruleFileName);
+    const filePath = `${CONFIGURATION_FILES_PATH}${ruleFileName}`;
+    console.log(`Reading rule file from: ${filePath}`);
+    xmlContent = await readFileContent(filePath);
+
   const url = `${WAZUH_MANAGER_URL}/rules/files/${ruleFileName}`;
-
-  const bodyBuffer = Buffer.from(file, 'utf-8');
+  const bodyBuffer = Buffer.from(xmlContent, 'utf-8');
 
   const response = await fetch(url, {
     method: 'PUT',
