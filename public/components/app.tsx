@@ -113,12 +113,6 @@ try {
   const response = await http.post('/api/integrations/wazuh/upload-rule', {
     body: JSON.stringify({
       token,
-      ruleContent: `
-    <group name="scopd">
-      <rule id="100900" level="12">
-        <description>SCOPD Integration rule</description>
-      </rule>
-    </group>`,
       ruleFileName: 'scopd_rule.xml'
     }),
     headers: {

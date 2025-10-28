@@ -57,8 +57,7 @@ export async function authenticateWazuh(): Promise<string> {
  */
 export async function uploadRuleToWazuhManager(
   token: string,
-  ruleContent?: string = `${SCOPD_RULES_CONTENT}`,
-  ruleFileName: string = 'scopd_rule.xml'
+  ruleFileName: string = 'scopd_rules.xml'
 ): Promise<void> {
   let xmlContent: string;
 

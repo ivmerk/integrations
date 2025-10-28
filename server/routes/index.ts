@@ -90,7 +90,6 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
       validate: {
         body: schema.object({
           token: schema.string(),
-          ruleContent: schema.maybe(schema.string()),
           ruleFileName: schema.maybe(schema.string())
         })
       }
@@ -98,11 +97,10 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
     async function handler(context, request, response) {
       interface UploadRuleRequestBody {
         token: string;
-        ruleContent: string | undefined;
         ruleFileName?: string | undefined;
       }
 
-      const {token, ruleContent, ruleFileName} = request.body as UploadRuleRequestBody;
+      const {token, ruleFileName} = request.body as UploadRuleRequestBody;
       try {
         if (!token) {
           return response.badRequest({
@@ -113,9 +111,9 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
         }
         deps.logger.info('Uploading rule to Wazuh Manager');
         if (ruleFileName) {
-          await uploadRuleToWazuhManager(token, ruleContent, ruleFileName);
+          await uploadRuleToWazuhManager(token, ruleFileName);
         } else {
-          await uploadRuleToWazuhManager(token, ruleContent);
+          await uploadRuleToWazuhManager(token);
         }
 
         return response.ok({
