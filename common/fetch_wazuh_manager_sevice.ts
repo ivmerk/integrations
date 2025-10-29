@@ -52,7 +52,6 @@ export async function authenticateWazuh(): Promise<string> {
 /**
  * Uploads an XML rule file to Wazuh Manager
  * @param token - Authentication token from Wazuh API
- * @param ruleContent - Optional XML content of the rule to upload (if not provided, will read from file)
  * @param ruleFileName - Name of the rule file (e.g., 'scopd_rule.xml')
  */
 export async function uploadRuleToWazuhManager(
@@ -87,11 +86,19 @@ export async function uploadRuleToWazuhManager(
   console.log(`✅ Successfully uploaded ${ruleFileName} (${bodyBuffer.length} bytes)`);
 }
 
-export async function uploadDecoderToWazuhManager(token: string, decoderContent: string, decoderFileName: string) {
+export async function uploadDecoderToWazuhManager(
+  token: string,
+  decoderFileName: string
+) {
 
+  let xmlContent: string;
+
+  const filePath = `${CONFIGURATION_FILES_PATH}${decoderFileName}`;
+  console.log(`Reading rule file from: ${filePath}`);
+  xmlContent = await readFileContent(filePath);
   const url = `${WAZUH_MANAGER_URL}/decoders/files/${decoderFileName}`;
 
-  const bodyBuffer = Buffer.from(decoderContent, 'utf-8');
+  const bodyBuffer = Buffer.from(xmlContent, 'utf-8');
 
   const response = await fetch(url, {
     method: 'PUT',

@@ -108,12 +108,27 @@ export const IntegrationsApp = ({
       }
       notifications.toasts.addDanger(`Authentication failed: ${errorMessage}`);
     }
+    try {
+      console.log('Uploading rules started...')
+      const response = await http.post('/api/integrations/wazuh/upload-rule', {
+        body: JSON.stringify({
+          token,
+          ruleFileName: 'scopd_rules.xml'
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('Upload success:', response);
+    } catch (error: unknown) {
+      console.error('Error uploading rules:', error);
+    }
 try {
-  console.log('Uploading rules started...')
-  const response = await http.post('/api/integrations/wazuh/upload-rule', {
+  console.log('Uploading decoder started...')
+  const response = await http.post('/api/inegrations/wazuh/upload-decoder', {
     body: JSON.stringify({
       token,
-      ruleFileName: 'scopd_rules.xml'
+      decoderFileName: 'scopd_decoders.xml'
     }),
     headers: {
       'Content-Type': 'application/json'
@@ -121,7 +136,7 @@ try {
   });
   console.log('Upload success:', response);
 } catch (error: unknown) {
-  console.error('Error uploading rules:', error);
+  console.error('Error uploading decoders:', error);
 }
 try {
   console.log('Restarting Wazuh Manager...')

@@ -147,17 +147,15 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
       validate: {
         body: schema.object({
           token: schema.string(),
-          decoderContent: schema.string(),
           decoderFileName: schema.string()
         })
       } },
     async (context, request, response) => {
       interface UploadDecoderRequestBody {
         token: string;
-        decoderContent: string;
         decoderFileName: string;
       }
-      const {token, decoderContent, decoderFileName} = request.body as UploadDecoderRequestBody;
+      const {token, decoderFileName} = request.body as UploadDecoderRequestBody;
       try {
         if (!token) {
           return response.badRequest({
@@ -167,7 +165,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           });
         }
         deps.logger.info('Uploading decoder to Wazuh Manager');
-        await uploadDecoderToWazuhManager(token, decoderContent, decoderFileName);
+        await uploadDecoderToWazuhManager(token, decoderFileName);
         return response.ok({
           body: {
             message: 'Decoder uploaded successfully',
