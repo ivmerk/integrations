@@ -191,7 +191,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
     }
   )
   router.post(
-    { path: '/api/integrations/wazuh/upload-agent-conf',
+    { path: '/api/integrations/wazuh/update-agent-conf',
       validate: {
         body: schema.object({
           token: schema.string(),

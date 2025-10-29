@@ -46,12 +46,6 @@ export async function authenticateWazuh(): Promise<string> {
 /**
  * Uploads an XML rule file to Wazuh Manager
  * @param token - Authentication token from Wazuh API
- * @param ruleContent - XML content of the rule to upload
- * @param ruleFileName - Name of the rule file (e.g., 'scopd_rule.xml')
- */
-/**
- * Uploads an XML rule file to Wazuh Manager
- * @param token - Authentication token from Wazuh API
  * @param ruleFileName - Name of the rule file (e.g., 'scopd_rule.xml')
  */
 export async function uploadRuleToWazuhManager(
@@ -117,6 +111,30 @@ export async function uploadDecoderToWazuhManager(
   }
 
   console.log(`✅ Successfully uploaded ${decoderFileName} (${bodyBuffer.length} bytes)`);
+}
+
+//not completed
+export async function getAgentConfFromWazuhManager(token: string, agentConfFileName: string) {
+
+  const url = `${WAZUH_MANAGER_URL}/agents/${agentConfFileName}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    agent: httpsAgent,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`❌ Upload failed: ${response.status} ${errorText}`);
+  }
+  const testConf = response.body;
+
+  console.log(`✅ Successfully received ${agentConfFileName}`);
+
+  return testConf;
 }
 
 export async function uploadAgentConfToWazuhManager(token: string, agentConfContent: string, agentConfFileName: string) {

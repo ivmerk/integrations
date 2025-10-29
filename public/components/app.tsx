@@ -139,6 +139,21 @@ try {
   console.error('Error uploading decoders:', error);
 }
 try {
+
+      const response = await http.post('/api/integrations/wazuh/update-agent-conf', {
+        body: JSON.stringify({
+          token,
+          agentConfFileName: 'agent_custom_tag.conf'
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('Updating success:', response);
+}catch (error: unknown) {
+      console.error('Error updating WazuhManager conf:', error);
+}
+try {
   console.log('Restarting Wazuh Manager...')
   const response = await http.post('/api/integrations/wazuh/restart', {
     body: JSON.stringify({
