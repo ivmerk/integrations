@@ -113,7 +113,7 @@ try {
   const response = await http.post('/api/integrations/wazuh/upload-rule', {
     body: JSON.stringify({
       token,
-      ruleFileName: 'scopd_rule.xml'
+      ruleFileName: 'scopd_rules.xml'
     }),
     headers: {
       'Content-Type': 'application/json'

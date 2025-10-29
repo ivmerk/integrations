@@ -1,3 +1,4 @@
+<!--
 <decoder name="dlp-syslog">
   <type>syslog</type>
   <program_name>^(stsrv|scopd-dlp)$</program_name>
@@ -7,4 +8,8 @@
   <parent>dlp-syslog</parent>
   <regex>event_type="([^"]+)"</regex>
   <order>event_type</order>
+</decoder>
+-->
+<decoder name="scopd-decoder-sample">
+   <program_name>scopd-decoder-sample</program_name>
 </decoder>
