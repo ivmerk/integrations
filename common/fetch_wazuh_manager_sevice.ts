@@ -113,6 +113,35 @@ export async function uploadDecoderToWazuhManager(
   console.log(`✅ Successfully uploaded ${decoderFileName} (${bodyBuffer.length} bytes)`);
 }
 
+export async function uploadGroupsAgentConfig(token: string,  agentConfFileName: string) {
+
+  let xmlContent: string;
+
+  const filePath = `${CONFIGURATION_FILES_PATH}${agentConfFileName}`;
+  console.log(`Reading rule file from: ${filePath}`);
+  xmlContent = await readFileContent(filePath);
+  const url = `${WAZUH_MANAGER_URL}/groups/default/configuration`;
+
+  const bodyBuffer = Buffer.from(xmlContent, 'utf-8');
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/xml',
+      'Content-Length': bodyBuffer.length.toString(),
+    },
+    body: bodyBuffer,
+    agent: httpsAgent,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`❌ Upload failed: ${response.status} ${errorText}`);
+  }
+
+  console.log(`✅ Successfully uploaded ${agentConfFileName} (${bodyBuffer.length} bytes)`);
+}
 //not completed
 export async function getAgentConfFromWazuhManager(token: string, agentConfFileName: string) {
 

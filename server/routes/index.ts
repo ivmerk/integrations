@@ -2,7 +2,7 @@ import { IRouter } from '../../../../src/core/server';
 import { schema } from '@osd/config-schema';
 import {
   authenticateWazuh, restartWazuhManager, uploadAgentConfToWazuhManager,
-  uploadDecoderToWazuhManager,
+  uploadDecoderToWazuhManager, uploadGroupsAgentConfig,
   uploadRuleToWazuhManager
 } from '../../common/fetch_wazuh_manager_sevice';
 import { Logger } from '../../../../src/core/server';
@@ -191,21 +191,19 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
     }
   )
   router.post(
-    { path: '/api/integrations/wazuh/update-agent-conf',
+    { path: '/api/integrations/wazuh/update-groups-agent-conf',
       validate: {
         body: schema.object({
           token: schema.string(),
-          agentConfContent: schema.string(),
           agentConfFileName: schema.string()
         })
       } },
     async (context, request, response) => {
       interface UploadAgentConfRequestBody {
         token: string;
-        agentConfContent: string;
         agentConfFileName: string;
       }
-      const {token, agentConfContent, agentConfFileName} = request.body as UploadAgentConfRequestBody;
+      const {token, agentConfFileName} = request.body as UploadAgentConfRequestBody;
       try {
         if (!token) {
           return response.badRequest({
@@ -214,8 +212,8 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
             }
           });
         }
-        deps.logger.info('Uploading agent conf to Wazuh Manager');
-        await uploadAgentConfToWazuhManager(token, agentConfContent, agentConfFileName);
+        deps.logger.info('Uploading groupsagent conf to Wazuh Manager');
+        await uploadGroupsAgentConfig(token, agentConfFileName);
         return response.ok({
           body: {
             message: 'Agent conf uploaded successfully',

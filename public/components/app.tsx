@@ -140,10 +140,10 @@ try {
 }
 try {
 
-      const response = await http.post('/api/integrations/wazuh/update-agent-conf', {
+      const response = await http.post('/api/integrations/wazuh/update-groups-agent-conf', {
         body: JSON.stringify({
           token,
-          agentConfFileName: 'agent_custom_tag.conf'
+          agentConfFileName: 'agent.conf.xml'
         }),
         headers: {
           'Content-Type': 'application/json'
