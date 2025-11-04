@@ -106,7 +106,7 @@ export const IntegrationsApp = ({
     } catch (error){
       console.error('Error request testing :', error);
     }
- /*   try {
+    try {
       console.log('try to use request API');
       const response = await http.post('/api/request', {
         body: JSON.stringify({
@@ -127,28 +127,28 @@ export const IntegrationsApp = ({
     }catch (error: unknown) {
       console.error('Error request testing :', error);
     }
-    try {
-      console.log('Initiating Wazuh authentication...');
-      const response = await http.post('/api/integrations/wazuh/authenticate');
+    /*   try {
+         console.log('Initiating Wazuh authentication...');
+         const response = await http.post('/api/integrations/wazuh/authenticate');
 
-      if (response.success && response.token) {
-        console.log('Wazuh authentication successful:', response.token);
-        token = response.token;
-        notifications.toasts.addSuccess('Successfully authenticated with Wazuh');
-        // Handle the token (store it in state, context, or local storage)
-      } else {
-        throw new Error(response.message || 'Authentication failed');
-      }
-    } catch (error: unknown) {
-      console.error('Authentication error:', error);
-      let errorMessage = 'Unknown error';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      }
-      notifications.toasts.addDanger(`Authentication failed: ${errorMessage}`);
-    }*/
+         if (response.success && response.token) {
+           console.log('Wazuh authentication successful:', response.token);
+           token = response.token;
+           notifications.toasts.addSuccess('Successfully authenticated with Wazuh');
+           // Handle the token (store it in state, context, or local storage)
+         } else {
+           throw new Error(response.message || 'Authentication failed');
+         }
+       } catch (error: unknown) {
+         console.error('Authentication error:', error);
+         let errorMessage = 'Unknown error';
+         if (error instanceof Error) {
+           errorMessage = error.message;
+         } else if (typeof error === 'string') {
+           errorMessage = error;
+         }
+         notifications.toasts.addDanger(`Authentication failed: ${errorMessage}`);
+       }*/
     try {
       console.log('Uploading rules started...')
       const response = await http.post('/api/integrations/wazuh/upload-rule', {
