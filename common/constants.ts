@@ -5,6 +5,6 @@ export const CONFIGURATION_FILES_PATH = '/src/plugins/integrations/custom-config
 export const WAZUH_MANAGER_URL = 'https://localhost:55000';
 export const SCOPD_RULES_FILE_NAME = 'scopd_rules.xml';
 
-export const SCOPD_AGENT_CONF_FILE_NAME = 'agent.conf';
+export const SCOPD_AGENT_CONF_FILE_NAME = 'agent.conf.xml';
 
 export const SCOPD_DECODER_FILE_NAME = 'scopd_decoders.xml';

@@ -16,7 +16,6 @@ export async function login({http, notifications}:login ) {
     if (response.token) {
       console.log('Wazuh authentication successful:', response.token);
       notifications.toasts.addSuccess('Successfully authenticated with Wazuh');
-      return response.token;
       // Handle the token (store it in state, context, or local storage)
     } else {
       console.error('Error request testing :', response.message);

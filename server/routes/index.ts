@@ -133,55 +133,6 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
       }
     }
   );
-  // Add endpoint for uploading decoder
-  router.post(
-    { path: '/api/inegrations/wazuh/upload-decoder',
-      validate: {
-        body: schema.object({
-          token: schema.string(),
-          decoderFileName: schema.string()
-        })
-      } },
-    async (context, request, response) => {
-      interface UploadDecoderRequestBody {
-        token: string;
-        decoderFileName: string;
-      }
-      const {token, decoderFileName} = request.body as UploadDecoderRequestBody;
-      try {
-        if (!token) {
-          return response.badRequest({
-            body: {
-              message: 'Authentication token is required'
-            }
-          });
-        }
-        deps.logger.info('Uploading decoder to Wazuh Manager');
-        await uploadDecoderToWazuhManager(token, decoderFileName);
-        return response.ok({
-          body: {
-            message: 'Decoder uploaded successfully',
-            attributes: {
-              fileName: decoderFileName
-            }
-          }
-        });
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        deps.logger.error(`Failed to upload decoder: ${errorMessage}`, {error});
-        return response.customError({
-          statusCode: 500,
-          body: {
-            message: `Failed to upload decoder: ${errorMessage}`,
-            attributes: {
-              success: false,
-              details: error instanceof Error ? error.toString() : String(error)
-            }
-          }
-        });
-      }
-    }
-  )
   router.post(
     { path: '/api/integrations/wazuh/update-groups-agent-conf',
       validate: {

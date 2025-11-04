@@ -16,11 +16,13 @@ import {
 import { CoreStart } from '../../../../src/core/public';
 import { NavigationPublicPluginStart } from '../../../../src/plugins/navigation/public';
 import { PLUGIN_ID, PLUGIN_NAME } from '../../common';
-import {SCOPD_DECODER_FILE_NAME, SCOPD_RULES_FILE_NAME} from "../../common/constants";
+import {SCOPD_DECODER_FILE_NAME, SCOPD_RULES_FILE_NAME, SCOPD_AGENT_CONF_FILE_NAME} from "../../common/constants";
 import {loadConfigFile} from "./services/file-loader";
 import {login} from "./services/login";
 import {uploadRulesFile} from "./services/rules-file-uploader";
 import {uploadDecoderFile} from "./services/decoder-file-uploader";
+import {uploadAgentConfFile} from "./services/agent-conf-file-upload";
+import {restartManager} from "./services/maneger-restart";
 
 interface ApiError extends Error {
   res?: {
@@ -52,7 +54,6 @@ export const IntegrationsApp = ({
 
   console.log('buttonText: ', buttonText);
   const onButtonClickHandler = async () => {
-    let token = 'YOUR_AUTH_TOKEN';
     let fileContent;
     try {
       if (buttonText === 'disable') {
@@ -92,40 +93,15 @@ export const IntegrationsApp = ({
         `Failed to update integration status: ${errorMessage}`
       );
     }
-    token = await login({http, notifications});
+
+    await login({http, notifications});
     fileContent = await loadConfigFile(http,SCOPD_RULES_FILE_NAME);
     await uploadRulesFile(http, fileContent);
     fileContent = await loadConfigFile(http,SCOPD_DECODER_FILE_NAME);
     await uploadDecoderFile(http, fileContent );
-try {
-
-      const response = await http.post('/api/integrations/wazuh/update-groups-agent-conf', {
-        body: JSON.stringify({
-          token,
-          agentConfFileName: 'agent.conf.xml'
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('Updating success:', response);
-}catch (error: unknown) {
-      console.error('Error updating WazuhManager conf:', error);
-}
-try {
-  console.log('Restarting Wazuh Manager...')
-  const response = await http.post('/api/integrations/wazuh/restart', {
-    body: JSON.stringify({
-      token
-    }),
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-  console.log('Restart success:', response);
-} catch (error: unknown) {
-  console.error('Error restarting Wazuh Manager:', error);
-}
+    fileContent = await loadConfigFile(http,SCOPD_AGENT_CONF_FILE_NAME);
+    await uploadAgentConfFile(http, fileContent );
+    await restartManager(http);
 }
 
 
