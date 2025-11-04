@@ -6,6 +6,8 @@ import {
   uploadRuleToWazuhManager
 } from '../../common/fetch_wazuh_manager_sevice';
 import { Logger } from '../../../../src/core/server';
+import {CONFIGURATION_FILES_PATH} from "../../common/constants";
+import {readFileContent} from "../../common/file_utils";
 
 interface RouteDependencies {
   logger: Logger;
@@ -57,7 +59,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
      }
    }
   );
-  router.post(
+ /* router.post(
     { path: '/api/integrations/wazuh/authenticate', validate: false },
     async (context, request, response) => {
       try {
@@ -77,6 +79,53 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           body: {
             message: error instanceof Error ? error.message : String(error),
             attributes: {
+              details: error instanceof Error ? error.toString() : String(error)
+            }
+          }
+        });
+      }
+    }
+  );*/
+  router.post(
+    {
+      path: '/api/integrations/load-config-file',
+      validate: {
+        body: schema.object({
+          configFileName: schema.maybe(schema.string())
+        })
+      }
+    },
+    async function handler(context, request, response) {
+      interface UploadConfFileRequestBody {
+        configFileName?: string | undefined;
+      }
+
+      const {configFileName} = request.body as UploadConfFileRequestBody;
+      const configFilePath = `${CONFIGURATION_FILES_PATH}${configFileName}`
+      let fileContent;
+      try {
+        deps.logger.info('Uploading configuration file from disk');
+        fileContent = await readFileContent(configFilePath);
+
+        return response.ok({
+          body: {
+            message: 'Rule uploaded successfully',
+            fileContent,
+            attributes: {
+              fileName: configFileName
+            }
+          }
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        deps.logger.error(`Failed to upload rule: ${errorMessage}`, {error});
+
+        return response.customError({
+          statusCode: 500,
+          body: {
+            message: `Failed to upload rule: ${errorMessage}`,
+            attributes: {
+              success: false,
               details: error instanceof Error ? error.toString() : String(error)
             }
           }

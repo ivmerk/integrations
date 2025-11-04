@@ -16,6 +16,8 @@ import {
 import { CoreStart } from '../../../../src/core/public';
 import { NavigationPublicPluginStart } from '../../../../src/plugins/navigation/public';
 import { PLUGIN_ID, PLUGIN_NAME } from '../../common';
+import {SCOPD_DECODER_FILE_NAME, SCOPD_RULES_FILE_NAME} from "../../common/constants";
+import {LoadConfigFile} from "./services/file-loader";
 
 interface ApiError extends Error {
   res?: {
@@ -48,6 +50,7 @@ export const IntegrationsApp = ({
   console.log('buttonText: ', buttonText);
   const onButtonClickHandler = async () => {
     let token = 'YOUR_AUTH_TOKEN';
+    let fileContent;
     try {
       if (buttonText === 'disable') {
         setButtonText('enable');
@@ -106,21 +109,22 @@ export const IntegrationsApp = ({
     } catch (error){
       console.error('Error request testing :', error);
     }
+    fileContent = await LoadConfigFile(http,SCOPD_RULES_FILE_NAME);
     try {
       console.log('try to use request API');
       const response = await http.post('/api/request', {
         body: JSON.stringify({
           body: {
+            body: fileContent,
+            origin: 'raw',
             params: {
-              limit: 10,
-              offset: 0,
-              sort: '+filename',
-              q: 'relative_dirname=etc/decoders'
+              overwrite: true,
+              relative_dirname: 'etc/rules',
             },
           },
           id: 'default',
-          method: 'GET',
-          path: '/decoders'
+          method: 'PUT',
+          path: '/rules/files/scopd_rules.xml'
         }),
       })
       console.log('Testing success:', response);
@@ -148,7 +152,7 @@ export const IntegrationsApp = ({
            errorMessage = error;
          }
          notifications.toasts.addDanger(`Authentication failed: ${errorMessage}`);
-       }*/
+       }
     try {
       console.log('Uploading rules started...')
       const response = await http.post('/api/integrations/wazuh/upload-rule', {
@@ -163,7 +167,7 @@ export const IntegrationsApp = ({
       console.log('Upload success:', response);
     } catch (error: unknown) {
       console.error('Error uploading rules:', error);
-    }
+    }*/
 try {
   console.log('Uploading decoder started...')
   const response = await http.post('/api/inegrations/wazuh/upload-decoder', {

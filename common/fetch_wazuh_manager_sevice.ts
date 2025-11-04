@@ -1,4 +1,4 @@
-import {CONFIGURATION_FILES_PATH, SCOPD_RULES_CONTENT} from './constants';
+import {CONFIGURATION_FILES_PATH} from './constants';
 import https from 'https';
 import {WAZUH_MANAGER_URL} from "./constants";
 import { readFileContent } from './file_utils';
