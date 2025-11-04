@@ -87,6 +87,47 @@ export const IntegrationsApp = ({
       );
     }
     try {
+    console.log('Try to login')
+    const response = await http.post('/api/login', {
+      body: JSON.stringify({
+        idHost: 'default',
+        force: true,
+
+      }),
+    });
+      if (response.token) {
+        console.log('Wazuh authentication successful:', response.token);
+        token = response.token;
+        notifications.toasts.addSuccess('Successfully authenticated with Wazuh');
+        // Handle the token (store it in state, context, or local storage)
+      } else {
+        throw new Error(response.message || 'Authentication failed');
+      }
+    } catch (error){
+      console.error('Error request testing :', error);
+    }
+ /*   try {
+      console.log('try to use request API');
+      const response = await http.post('/api/request', {
+        body: JSON.stringify({
+          body: {
+            params: {
+              limit: 10,
+              offset: 0,
+              sort: '+filename',
+              q: 'relative_dirname=etc/decoders'
+            },
+          },
+          id: 'default',
+          method: 'GET',
+          path: '/decoders'
+        }),
+      })
+      console.log('Testing success:', response);
+    }catch (error: unknown) {
+      console.error('Error request testing :', error);
+    }
+    try {
       console.log('Initiating Wazuh authentication...');
       const response = await http.post('/api/integrations/wazuh/authenticate');
 
@@ -107,7 +148,7 @@ export const IntegrationsApp = ({
         errorMessage = error;
       }
       notifications.toasts.addDanger(`Authentication failed: ${errorMessage}`);
-    }
+    }*/
     try {
       console.log('Uploading rules started...')
       const response = await http.post('/api/integrations/wazuh/upload-rule', {
