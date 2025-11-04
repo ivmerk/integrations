@@ -133,64 +133,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
       }
     }
   );
-  router.post(
-    {
-      path: '/api/integrations/wazuh/upload-rule',
-      validate: {
-        body: schema.object({
-          token: schema.string(),
-          ruleFileName: schema.maybe(schema.string())
-        })
-      }
-    },
-    async function handler(context, request, response) {
-      interface UploadRuleRequestBody {
-        token: string;
-        ruleFileName?: string | undefined;
-      }
-
-      const {token, ruleFileName} = request.body as UploadRuleRequestBody;
-      try {
-        if (!token) {
-          return response.badRequest({
-            body: {
-              message: 'Authentication token is required'
-            }
-          });
-        }
-        deps.logger.info('Uploading rule to Wazuh Manager');
-        if (ruleFileName) {
-          await uploadRuleToWazuhManager(token, ruleFileName);
-        } else {
-          await uploadRuleToWazuhManager(token);
-        }
-
-        return response.ok({
-          body: {
-            message: 'Rule uploaded successfully',
-            attributes: {
-              fileName: ruleFileName
-            }
-          }
-        });
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        deps.logger.error(`Failed to upload rule: ${errorMessage}`, {error});
-
-        return response.customError({
-          statusCode: 500,
-          body: {
-            message: `Failed to upload rule: ${errorMessage}`,
-            attributes: {
-              success: false,
-              details: error instanceof Error ? error.toString() : String(error)
-            }
-          }
-        });
-      }
-    }
-  );
-  // Add endpoint for uploading rules
+  // Add endpoint for uploading decoder
   router.post(
     { path: '/api/inegrations/wazuh/upload-decoder',
       validate: {

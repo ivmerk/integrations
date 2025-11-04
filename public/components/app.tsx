@@ -17,7 +17,10 @@ import { CoreStart } from '../../../../src/core/public';
 import { NavigationPublicPluginStart } from '../../../../src/plugins/navigation/public';
 import { PLUGIN_ID, PLUGIN_NAME } from '../../common';
 import {SCOPD_DECODER_FILE_NAME, SCOPD_RULES_FILE_NAME} from "../../common/constants";
-import {LoadConfigFile} from "./services/file-loader";
+import {loadConfigFile} from "./services/file-loader";
+import {login} from "./services/login";
+import {uploadRulesFile} from "./services/rules-file-uploader";
+import {uploadDecoderFile} from "./services/decoder-file-uploader";
 
 interface ApiError extends Error {
   res?: {
@@ -89,100 +92,11 @@ export const IntegrationsApp = ({
         `Failed to update integration status: ${errorMessage}`
       );
     }
-    try {
-    console.log('Try to login')
-    const response = await http.post('/api/login', {
-      body: JSON.stringify({
-        idHost: 'default',
-        force: true,
-
-      }),
-    });
-      if (response.token) {
-        console.log('Wazuh authentication successful:', response.token);
-        token = response.token;
-        notifications.toasts.addSuccess('Successfully authenticated with Wazuh');
-        // Handle the token (store it in state, context, or local storage)
-      } else {
-        throw new Error(response.message || 'Authentication failed');
-      }
-    } catch (error){
-      console.error('Error request testing :', error);
-    }
-    fileContent = await LoadConfigFile(http,SCOPD_RULES_FILE_NAME);
-    try {
-      console.log('try to use request API');
-      const response = await http.post('/api/request', {
-        body: JSON.stringify({
-          body: {
-            body: fileContent,
-            origin: 'raw',
-            params: {
-              overwrite: true,
-              relative_dirname: 'etc/rules',
-            },
-          },
-          id: 'default',
-          method: 'PUT',
-          path: '/rules/files/scopd_rules.xml'
-        }),
-      })
-      console.log('Testing success:', response);
-    }catch (error: unknown) {
-      console.error('Error request testing :', error);
-    }
-    /*   try {
-         console.log('Initiating Wazuh authentication...');
-         const response = await http.post('/api/integrations/wazuh/authenticate');
-
-         if (response.success && response.token) {
-           console.log('Wazuh authentication successful:', response.token);
-           token = response.token;
-           notifications.toasts.addSuccess('Successfully authenticated with Wazuh');
-           // Handle the token (store it in state, context, or local storage)
-         } else {
-           throw new Error(response.message || 'Authentication failed');
-         }
-       } catch (error: unknown) {
-         console.error('Authentication error:', error);
-         let errorMessage = 'Unknown error';
-         if (error instanceof Error) {
-           errorMessage = error.message;
-         } else if (typeof error === 'string') {
-           errorMessage = error;
-         }
-         notifications.toasts.addDanger(`Authentication failed: ${errorMessage}`);
-       }
-    try {
-      console.log('Uploading rules started...')
-      const response = await http.post('/api/integrations/wazuh/upload-rule', {
-        body: JSON.stringify({
-          token,
-          ruleFileName: 'scopd_rules.xml'
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log('Upload success:', response);
-    } catch (error: unknown) {
-      console.error('Error uploading rules:', error);
-    }*/
-try {
-  console.log('Uploading decoder started...')
-  const response = await http.post('/api/inegrations/wazuh/upload-decoder', {
-    body: JSON.stringify({
-      token,
-      decoderFileName: 'scopd_decoders.xml'
-    }),
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-  console.log('Upload success:', response);
-} catch (error: unknown) {
-  console.error('Error uploading decoders:', error);
-}
+    token = await login({http, notifications});
+    fileContent = await loadConfigFile(http,SCOPD_RULES_FILE_NAME);
+    await uploadRulesFile(http, fileContent);
+    fileContent = await loadConfigFile(http,SCOPD_DECODER_FILE_NAME);
+    await uploadDecoderFile(http, fileContent );
 try {
 
       const response = await http.post('/api/integrations/wazuh/update-groups-agent-conf', {
