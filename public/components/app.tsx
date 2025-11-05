@@ -22,7 +22,7 @@ import {login} from "./services/login";
 import {uploadRulesFile} from "./services/rules-file-uploader";
 import {uploadDecoderFile} from "./services/decoder-file-uploader";
 import {uploadAgentConfFile} from "./services/agent-conf-file-upload";
-import {restartManager} from "./services/maneger-restart";
+import {restartManager} from "./services/manager-restart";
 
 interface ApiError extends Error {
   res?: {
