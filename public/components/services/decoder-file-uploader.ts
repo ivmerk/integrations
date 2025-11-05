@@ -1,4 +1,5 @@
 import CoreStart from "../../../../../src/core/public";
+import {SCOPD_DECODER_FILE_NAME} from "../../../common/constants";
 export async function uploadDecoderFile(http:CoreStart['http'], fileContent: string) {
 
   try {
@@ -15,7 +16,7 @@ export async function uploadDecoderFile(http:CoreStart['http'], fileContent: str
         },
         id: 'default',
         method: 'PUT',
-        path: '/decoders/files/scopd_decoders.xml'
+        path: `/decoders/files/${SCOPD_DECODER_FILE_NAME}`
       }),
     });
     console.log('Upload success:', response);
