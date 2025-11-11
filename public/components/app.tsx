@@ -21,19 +21,11 @@ import {loadConfigFile} from "./services/file-loader";
 import {login} from "./services/login";
 import {uploadRulesFile} from "./services/rules-file-uploader";
 import {uploadDecoderFile} from "./services/decoder-file-uploader";
-import {uploadAgentConfFile} from "./services/agent-conf-file-upload";
+import {uploadAgentConfFile} from "./services/agent-conf-file-uploader";
 import {restartManager} from "./services/manager-restart";
+import {saveObject} from "./services/object-saver";
 
-interface ApiError extends Error {
-  res?: {
-    status?: number;
-    data?: {
-      error?: {
-        message: string;
-      };
-    };
-  };
-}
+
 interface IntegrationsAppDeps {
   basename: string;
   notifications: CoreStart['notifications'];
@@ -52,48 +44,13 @@ export const IntegrationsApp = ({
 
   const [buttonText, setButtonText] = useState<string | undefined>('disable');
 
-  console.log('buttonText: ', buttonText);
   const onButtonClickHandler = async () => {
     let fileContent;
-    try {
-      if (buttonText === 'disable') {
-        setButtonText('enable');
-      }
-
-      const savedObjectsClient = savedObjects.client;
-      console.log('Attempting to save integration status...');
-      const response = await savedObjectsClient.create(
-        'integration-status',
-        {
-          integration: 'scopd',
-          enabled: true
-        },
-        {
-          id: 'scopd-status',
-          overwrite: true
-        }
-      );
-      console.log('Save successful:', response);
-      notifications.toasts.addSuccess('Integration status updated successfully');
-    } catch (error: unknown) {
-
-      const apiError = error as ApiError;
-
-      console.error('Error details:', {
-        name: apiError?.name,
-        message: apiError?.message,
-        statusCode: apiError?.res?.status,
-        error: apiError?.res?.data,
-        stack: apiError?.stack
-      });
-      const errorMessage = apiError?.res?.data?.error?.message ||
-        apiError?.message ||
-        'Unknown error occurred';
-      notifications.toasts.addDanger(
-        `Failed to update integration status: ${errorMessage}`
-      );
+    if (buttonText === 'disable') {
+      setButtonText('enable');
     }
 
+    await saveObject({savedObjects, notifications});
     await login({http, notifications});
     fileContent = await loadConfigFile(http,SCOPD_RULES_FILE_NAME);
     await uploadRulesFile(http, fileContent);
@@ -103,8 +60,6 @@ export const IntegrationsApp = ({
     await uploadAgentConfFile(http, fileContent );
     await restartManager(http);
 }
-
-
   // Render the application DOM.
   // Note that `navigation.ui.TopNavMenu` is a stateful component exported on the `navigation` plugin's start contract.
   return (
