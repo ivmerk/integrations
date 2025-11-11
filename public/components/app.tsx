@@ -151,7 +151,7 @@ export const IntegrationsApp = ({
                       />
                     </p>
                     <EuiButton type="primary" size="s" onClick={onButtonClickHandler} isDisabled={buttonText === 'enable'}>
-                      <FormattedMessage id="integration.buttonText" defaultMessage="asdfas" />
+                      <FormattedMessage id="integration.buttonText" defaultMessage="Enable" />
                     </EuiButton>
                   </EuiText>
                 </EuiPageContentBody>
