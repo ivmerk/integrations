@@ -80,4 +80,4 @@ describe('uploadRulesFile', () => {
       }),
     });
   });
-
+});
