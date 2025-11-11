@@ -24,6 +24,7 @@ import {uploadDecoderFile} from "./services/decoder-file-uploader";
 import {uploadAgentConfFile} from "./services/agent-conf-file-uploader";
 import {restartManager} from "./services/manager-restart";
 import {saveObject} from "./services/object-saver";
+import {getConfig} from "./services/config-updater";
 
 
 interface IntegrationsAppDeps {
@@ -58,6 +59,7 @@ export const IntegrationsApp = ({
     await uploadDecoderFile({http, fileContent} );
     fileContent = await loadConfigFile({http,fileName: SCOPD_AGENT_CONF_FILE_NAME});
     await uploadAgentConfFile({http, fileContent});
+    await getConfig({http});
     await restartManager({http});
 }
   // Render the application DOM.

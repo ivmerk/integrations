@@ -5,9 +5,7 @@ interface UploadAgentConfFile {
   fileContent: string;
 }
 export async function uploadAgentConfFile({http, fileContent}:UploadAgentConfFile) {
-
   try {
-
     const response = await http.post('/api/request', {
       body: JSON.stringify({
         body: {
