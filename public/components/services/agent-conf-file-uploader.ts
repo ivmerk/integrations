@@ -1,6 +1,10 @@
 import CoreStart from "../../../../../src/core/public";
 import {GROUP_NAME} from "../../../common/constants";
-export async function uploadAgentConfFile(http:CoreStart['http'], fileContent: string) {
+interface UploadAgentConfFile {
+  http: CoreStart['http'];
+  fileContent: string;
+}
+export async function uploadAgentConfFile({http, fileContent}:UploadAgentConfFile) {
 
   try {
 

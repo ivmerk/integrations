@@ -1,6 +1,11 @@
 import CoreStart from "../../../../../src/core/public";
 import {SCOPD_RULES_FILE_NAME, GROUP_NAME} from "../../../common/constants";
-export async function uploadRulesFile(http:CoreStart['http'], fileContent: string) {
+
+interface UploadRulesFile {
+  http: CoreStart['http'];
+  fileContent: string;
+}
+export async function uploadRulesFile({http, fileContent} :UploadRulesFile) {
   try {
     console.log('Uploading rules started...');
     const response = await http.post('/api/request', {

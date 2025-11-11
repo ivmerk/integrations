@@ -1,6 +1,10 @@
 import CoreStart from "../../../../../src/core/public";
 import {GROUP_NAME, SCOPD_DECODER_FILE_NAME} from "../../../common/constants";
-export async function uploadDecoderFile(http:CoreStart['http'], fileContent: string) {
+interface UploadDecoderFile {
+  http: CoreStart['http'];
+  fileContent: string;
+}
+export async function uploadDecoderFile({http, fileContent}:UploadDecoderFile) {
 
   try {
     console.log('Uploading decoder started...')

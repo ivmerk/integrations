@@ -52,13 +52,13 @@ export const IntegrationsApp = ({
 
     await saveObject({savedObjects, notifications});
     await login({http, notifications});
-    fileContent = await loadConfigFile(http,SCOPD_RULES_FILE_NAME);
-    await uploadRulesFile(http, fileContent);
-    fileContent = await loadConfigFile(http,SCOPD_DECODER_FILE_NAME);
-    await uploadDecoderFile(http, fileContent );
-    fileContent = await loadConfigFile(http,SCOPD_AGENT_CONF_FILE_NAME);
-    await uploadAgentConfFile(http, fileContent );
-    await restartManager(http);
+    fileContent = await loadConfigFile({http,fileName: SCOPD_RULES_FILE_NAME});
+    await uploadRulesFile({http, fileContent});
+    fileContent = await loadConfigFile({http,fileName: SCOPD_DECODER_FILE_NAME});
+    await uploadDecoderFile({http, fileContent} );
+    fileContent = await loadConfigFile({http,fileName: SCOPD_AGENT_CONF_FILE_NAME});
+    await uploadAgentConfFile({http, fileContent});
+    await restartManager({http});
 }
   // Render the application DOM.
   // Note that `navigation.ui.TopNavMenu` is a stateful component exported on the `navigation` plugin's start contract.

@@ -1,8 +1,10 @@
 import CoreStart from "../../../../../src/core/public";
-export interface LoadConfigFile {
-  fileContent: string;
+
+interface LoadConfigFile {
+  http: CoreStart['http'];
+  fileName: string;
 }
-export async function loadConfigFile(http:CoreStart['http'],fileName:string) {
+export async function loadConfigFile({http, fileName}:LoadConfigFile) {
   try {
     console.log('Try to load configuration file');
     const response = await http.post('/api/integrations/load-config-file', {
