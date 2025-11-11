@@ -1,5 +1,5 @@
 import CoreStart from "../../../../../src/core/public";
-import {SCOPD_RULES_FILE_NAME} from "../../../common/constants";
+import {SCOPD_RULES_FILE_NAME, GROUP_NAME} from "../../../common/constants";
 export async function uploadRulesFile(http:CoreStart['http'], fileContent: string) {
   try {
     console.log('Uploading rules started...');
@@ -13,7 +13,7 @@ export async function uploadRulesFile(http:CoreStart['http'], fileContent: strin
             relative_dirname: 'etc/rules',
           },
         },
-        id: 'default',
+        id: `${GROUP_NAME}`,
         method: 'PUT',
         path: `/rules/files/${SCOPD_RULES_FILE_NAME}`
       }),

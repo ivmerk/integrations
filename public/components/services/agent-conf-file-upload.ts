@@ -1,4 +1,5 @@
 import CoreStart from "../../../../../src/core/public";
+import {GROUP_NAME} from "../../../common/constants";
 export async function uploadAgentConfFile(http:CoreStart['http'], fileContent: string) {
 
   try {
@@ -9,7 +10,7 @@ export async function uploadAgentConfFile(http:CoreStart['http'], fileContent: s
           body: fileContent,
           origin: 'xmleditor',
         },
-        id: 'default',
+        id: `${GROUP_NAME}`,
         method: 'PUT',
         path: '/groups/default/configuration'
       }),

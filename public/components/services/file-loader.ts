@@ -1,5 +1,4 @@
 import CoreStart from "../../../../../src/core/public";
-import {SCOPD_RULES_FILE_NAME} from "../../../common/constants";
 export interface LoadConfigFile {
   fileContent: string;
 }

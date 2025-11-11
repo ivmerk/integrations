@@ -1,5 +1,5 @@
 import { uploadRulesFile } from './rules-file-uploader';
-import { SCOPD_RULES_FILE_NAME } from '../../../common/constants';
+import {GROUP_NAME, SCOPD_RULES_FILE_NAME} from '../../../common/constants';
 
 // Mock CoreStart interface
 const mockHttp = {
@@ -34,7 +34,7 @@ describe('uploadRulesFile', () => {
             relative_dirname: 'etc/rules',
           },
         },
-        id: 'default',
+        id: `${GROUP_NAME}`,
         method: 'PUT',
         path: `/rules/files/${SCOPD_RULES_FILE_NAME}`
       }),
@@ -74,7 +74,7 @@ describe('uploadRulesFile', () => {
             relative_dirname: 'etc/rules',
           },
         },
-        id: 'default',
+        id: `${GROUP_NAME}`,
         method: 'PUT',
         path: `/rules/files/${SCOPD_RULES_FILE_NAME}`
       }),

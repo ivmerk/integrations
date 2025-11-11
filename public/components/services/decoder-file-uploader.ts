@@ -1,5 +1,5 @@
 import CoreStart from "../../../../../src/core/public";
-import {SCOPD_DECODER_FILE_NAME} from "../../../common/constants";
+import {GROUP_NAME, SCOPD_DECODER_FILE_NAME} from "../../../common/constants";
 export async function uploadDecoderFile(http:CoreStart['http'], fileContent: string) {
 
   try {
@@ -14,7 +14,7 @@ export async function uploadDecoderFile(http:CoreStart['http'], fileContent: str
             relative_dirname: 'etc/decoders',
           },
         },
-        id: 'default',
+        id: `${GROUP_NAME}`,
         method: 'PUT',
         path: `/decoders/files/${SCOPD_DECODER_FILE_NAME}`
       }),
