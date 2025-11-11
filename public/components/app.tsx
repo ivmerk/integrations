@@ -16,15 +16,20 @@ import {
 import { CoreStart } from '../../../../src/core/public';
 import { NavigationPublicPluginStart } from '../../../../src/plugins/navigation/public';
 import { PLUGIN_ID, PLUGIN_NAME } from '../../common';
-import {SCOPD_DECODER_FILE_NAME, SCOPD_RULES_FILE_NAME, SCOPD_AGENT_CONF_FILE_NAME} from "../../common/constants";
+import {
+  SCOPD_DECODER_FILE_NAME,
+  SCOPD_RULES_FILE_NAME,
+  SCOPD_AGENT_CONF_FILE_NAME,
+  SCOPD_OSSEC_CONF_FILE_NAME
+} from "../../common/constants";
 import {loadConfigFile} from "./services/file-loader";
 import {login} from "./services/login";
 import {uploadRulesFile} from "./services/rules-file-uploader";
 import {uploadDecoderFile} from "./services/decoder-file-uploader";
-import {uploadAgentConfFile} from "./services/agent-conf-file-uploader";
+import { uploadAgentConfFile} from "./services/agent-conf-file-uploader";
 import {restartManager} from "./services/manager-restart";
 import {saveObject} from "./services/object-saver";
-import {getConfig} from "./services/config-updater";
+import {updateAgentConfFile, getConfig} from "./services/config-updater";
 
 
 interface IntegrationsAppDeps {
@@ -52,14 +57,23 @@ export const IntegrationsApp = ({
     }
 
     await saveObject({savedObjects, notifications});
+
     await login({http, notifications});
+
     fileContent = await loadConfigFile({http,fileName: SCOPD_RULES_FILE_NAME});
     await uploadRulesFile({http, fileContent});
+
     fileContent = await loadConfigFile({http,fileName: SCOPD_DECODER_FILE_NAME});
     await uploadDecoderFile({http, fileContent} );
+
     fileContent = await loadConfigFile({http,fileName: SCOPD_AGENT_CONF_FILE_NAME});
     await uploadAgentConfFile({http, fileContent});
-    await getConfig({http});
+
+    const confFileContent = await getConfig({http});
+    fileContent = await loadConfigFile({http,fileName: SCOPD_OSSEC_CONF_FILE_NAME});
+
+    await updateAgentConfFile({http, confFileContent, fileContent});
+
     await restartManager({http});
 }
   // Render the application DOM.
