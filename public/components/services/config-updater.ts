@@ -26,10 +26,10 @@ interface UpdateAgentConfFile {
   confFileContent: string;
   fileContent: string;
 }
-export async function updateAgentConfFile({http, confFileContent, fileContent}) {
-  if (confFileContent.includes(fileContent)) {
-    console.log('File updated yet')
-    return fileContent;
+export async function updateAgentConfFile({http, confFileContent, fileContent}:UpdateAgentConfFile) {
+  if (confFileContent.replace(/\s/g, '').includes(fileContent.replace(/\s/g, ''))) {
+    console.log('File had been updated to previous iteration')
+    return;
   }
   const ossecConfigEndIndex = confFileContent.indexOf('>', confFileContent.indexOf('<ossec_config>')) + 1;
   if (ossecConfigEndIndex === 0) {
@@ -38,20 +38,18 @@ export async function updateAgentConfFile({http, confFileContent, fileContent}) 
 
   // Get the indentation of the line with <ossec_config>
   const lineStart = confFileContent.lastIndexOf('\n', ossecConfigEndIndex) + 1;
-  const indent = confFileContent.substring(lineStart, confFileContent.indexOf('<', lineStart));
-console.log('lineStart', lineStart, indent);
-  // Insert the remote config with proper indentation
+  const indent = confFileContent.substring(lineStart, confFileContent.indexOf('<', lineStart)).replace(/[^ \t]/g, '');
   const before = confFileContent.substring(0, ossecConfigEndIndex);
   const after = confFileContent.substring(ossecConfigEndIndex);
 
   // Add newline and proper indentation
-  console.log(`${before}\n${indent}${fileContent.trim().replace(/\n/g, `${indent}`)}${after}`);
+ const updatedFileContent = `${before}\n${indent}${fileContent.trim().replace(/\n/g, `\n${indent}`)}${after}`;
   try {
     const response = await http.post('/api/request', {
       body: JSON.stringify({
         body: {
-          body: fileContent,
-          origin: 'xmleditor',
+          body: updatedFileContent,
+          origin: 'raw',
         },
         id: `${GROUP_NAME}`,
         method: 'PUT',
