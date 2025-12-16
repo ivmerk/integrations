@@ -1,4 +1,4 @@
-<group name="phishing,local,">
+<group name="phishing,scopd,">
   <rule id="100180" level="12">
     <decoded_as>json</decoded_as>
     <if_sid>86600</if_sid>
@@ -7,7 +7,7 @@
     <options>no_full_log</options>
   </rule>
 </group>
-<group name="dlp,">
+<group name="dlp,scopd,">
   <rule id="100190" level="0">
     <decoded_as>dlp-syslog</decoded_as>
     <description>Group Scopd DLP</description>

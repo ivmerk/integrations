@@ -15,9 +15,9 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
       title: PLUGIN_NAME,
       category: {
         id: 'integrations',
+        order: 50,
         label: 'Integrations',
         euiIconType: 'visLine',
-        order: 100,
       },
       order: -1000,
       async mount(params: AppMountParameters) {
@@ -39,7 +39,7 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
 
     // Return methods that should be available to other plugins
     return {
-      getGreeting() {
+      getGresting() {
         return i18n.translate('integrations.greetingText', {
           defaultMessage: 'Hello from {name}!',
           values: {
