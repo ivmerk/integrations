@@ -12,11 +12,19 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
     // Register an application into the side navigation menu
     core.application.register({
       id: PLUGIN_ID,
-      title: PLUGIN_NAME,
+      get title() {
+        return i18n.translate('core.ui.integrationsNavListSettingsPlugin.label', {
+          defaultMessage: PLUGIN_NAME,
+        });
+      },
       category: {
         id: 'integrations',
         order: 50,
-        label: 'Integrations',
+        get label() {
+          return i18n.translate('core.ui.integrationsNavList.label', {
+            defaultMessage: 'Integrations',
+          });
+        },
         euiIconType: 'visLine',
       },
       order: -1000,
