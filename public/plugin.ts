@@ -12,12 +12,20 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
     // Register an application into the side navigation menu
     core.application.register({
       id: PLUGIN_ID,
-      title: PLUGIN_NAME,
+      get title() {
+        return i18n.translate('core.ui.integrationsNavListSettingsPlugin.label', {
+          defaultMessage: PLUGIN_NAME,
+        });
+      },
       category: {
         id: 'integrations',
-        label: 'Integrations',
+        order: 50,
+        get label() {
+          return i18n.translate('core.ui.integrationsNavList.label', {
+            defaultMessage: 'Integrations',
+          });
+        },
         euiIconType: 'visLine',
-        order: 100,
       },
       order: -1000,
       async mount(params: AppMountParameters) {
@@ -39,7 +47,7 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
 
     // Return methods that should be available to other plugins
     return {
-      getGreeting() {
+      getGresting() {
         return i18n.translate('integrations.greetingText', {
           defaultMessage: 'Hello from {name}!',
           values: {

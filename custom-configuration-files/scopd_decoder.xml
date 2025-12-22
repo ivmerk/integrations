@@ -1,0 +1,124 @@
+<decoder name="dlp-syslog">
+  <type>syslog</type>
+  <prematch>scopd-dlp</prematch>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>comp_loc="(\.+)"</regex>
+  <order>comp_loc</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>comp_name="(\.+)"</regex>
+  <order>comp_name</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>user_domain="(\.+)"</regex>
+  <order>user_domain</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>user_name="(\.+)"</regex>
+  <order>user_name</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>event_time="(\.+)"</regex>
+  <order>event_time</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>event_type="(\.+)"</regex>
+  <order>event_type</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>priority="(\.+)"</regex>
+  <order>priority</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>description="(\.+)"</regex>
+  <order>description</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>severity="(\.+)"</regex>
+  <order>severity</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>outcome="(\.+)"</regex>
+  <order>outcome</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>agent_version="(\.+)"</regex>
+  <order>agent_version</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>object_type="(\.+)"</regex>
+  <order>object_type</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>object_name="(\.+)"</regex>
+  <order>object_name</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>object_path="(\.+)"</regex>
+  <order>object_path</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>object_crc32="(\.+)"</regex>
+  <order>object_crc32</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>data_volume="(\.+)"</regex>
+  <order>data_volume</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>detection_method="(\.+)"</regex>
+  <order>detection_method</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>direction="(\.+)"</regex>
+  <order>direction</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>channel="(\.+)"</regex>
+  <order>channel</order>
+</decoder>
+
+<decoder name="dlp-syslog">
+  <parent>dlp-syslog</parent>
+  <regex>destination="(\.+)"</regex>
+  <order>destination</order>
+</decoder>
