@@ -1,0 +1,95 @@
+// Переменные для удобства (можно вынести в отдельный файл variables.scss)
+$gray-light: #f5f7fa; // Фон страницы
+$border-color: #d3dae6;
+$text-subdued: #69707d;
+$btn-manual-color: #535966;
+
+.integrations-wrapper {
+  padding: 24px;
+  background-color: $gray-light;
+  min-height: 100vh;
+}
+
+.integrations-grid {
+  display: grid;
+  // Магия адаптивности: колонки от 280px до 1fr.
+  // Это автоматически сделает 3 колонки на больших экранах, 2 на средних и 1 на мобильных.
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px; // Расстояние между карточками
+}
+
+.integration-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 200px; // Фиксированная высота для единообразия
+  background-color: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  // Небольшой ховер эффект для всей карточки (опционально)
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  // Зона логотипа занимает доступное пространство и центрируется
+  .card-logo {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+
+    // Стили для SVG внутри (чтобы они не раздувались)
+    img, svg {
+      max-width: 80%;
+      max-height: 60px;
+      object-fit: contain;
+    }
+  }
+
+  // Футер карточки (кнопка или статус)
+  .card-footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 40px; // Чтобы кнопки "не прыгали" по высоте
+  }
+}
+
+// Стилизация состояний (Status / Buttons)
+
+// 1. Статус "Connected" (Зеленая точка через EuiHealth)
+.card-status {
+  // EUI сам стилизует EuiHealth, но можно подправить шрифт
+  font-weight: 500;
+  color: #333;
+}
+
+// 2. Кнопка "Connect" (Используем EuiButton, но можем допилить стили)
+.connect-btn {
+  min-width: 100px;
+  // EUI Button уже отзывчивая (hover, focus, active).
+  // Если нужно переопределить цвет рамки на специфический синий:
+  // color: #006BB4;
+  // border-color: #006BB4;
+}
+
+// 3. Кнопка "Configure manually" (Кастомная серая кнопка)
+.manual-btn {
+  background: transparent;
+  border: 1px solid #98a2b3;
+  color: $btn-manual-color;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+
+  &:hover {
+    border-color: #69707d;
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}

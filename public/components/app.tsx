@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FormattedMessage, I18nProvider } from '@osd/i18n/react';
 import { BrowserRouter as Router } from 'react-router-dom';
+import { IntegrationsList } from './integrations_list/integrations_list';
 import {
   EuiButton,
   EuiHorizontalRule,
@@ -15,7 +16,6 @@ import {
 } from '@elastic/eui';
 import { CoreStart } from '../../../../src/core/public';
 import { NavigationPublicPluginStart } from '../../../../src/plugins/navigation/public';
-import { PLUGIN_ID, PLUGIN_NAME } from '../../common';
 import {
   SCOPD_DECODER_FILE_NAME,
   SCOPD_RULES_FILE_NAME,
@@ -47,8 +47,8 @@ export const IntegrationsApp = ({
   savedObjects,
   navigation,
 }: IntegrationsAppDeps) => {
-
   const [buttonText, setButtonText] = useState<string | undefined>('disable');
+
 
   const onButtonClickHandler = async () => {
     let fileContent;
@@ -57,36 +57,24 @@ export const IntegrationsApp = ({
     }
 
     await saveObject({savedObjects, notifications});
-
     await login({http, notifications});
-
     fileContent = await loadConfigFile({http,fileName: SCOPD_RULES_FILE_NAME});
     await uploadRulesFile({http, fileContent});
-
     fileContent = await loadConfigFile({http,fileName: SCOPD_DECODER_FILE_NAME});
     await uploadDecoderFile({http, fileContent} );
-
     fileContent = await loadConfigFile({http,fileName: SCOPD_AGENT_CONF_FILE_NAME});
     await uploadAgentConfFile({http, fileContent});
-
     const confFileContent = await getConfig({http});
     fileContent = await loadConfigFile({http,fileName: SCOPD_OSSEC_CONF_FILE_NAME});
-
     await updateAgentConfFile({http, confFileContent, fileContent});
-
     await restartManager({http});
-}
+  };
   // Render the application DOM.
   // Note that `navigation.ui.TopNavMenu` is a stateful component exported on the `navigation` plugin's start contract.
   return (
     <Router basename={basename}>
       <I18nProvider>
-        <>
-          <navigation.ui.TopNavMenu
-            appName={PLUGIN_ID}
-            showSearchBar={true}
-            useDefaultBehaviors={true}
-          />
+        <div className="integrations-wrapper">
           <EuiPage restrictWidth="1000px">
             <EuiPageBody component="main">
               <EuiPageHeader>
@@ -95,11 +83,17 @@ export const IntegrationsApp = ({
                     <FormattedMessage
                       id="integration.helloWorldText"
                       defaultMessage="{name}"
-                      values={{ name: PLUGIN_NAME }}
+                      values={{ name: "Available Integrations"}}
                     />
                   </h1>
                 </EuiTitle>
               </EuiPageHeader>
+              <EuiPageContent>
+                <EuiPageContentBody>
+                  <p>Scopd Integration</p>
+                  <IntegrationsList />
+                </EuiPageContentBody>
+              </EuiPageContent>
               <EuiPageContent>
                 <EuiPageContentHeader>
                   <EuiTitle>
@@ -129,7 +123,7 @@ export const IntegrationsApp = ({
               </EuiPageContent>
             </EuiPageBody>
           </EuiPage>
-        </>
+        </div>
 
       </I18nProvider>
     </Router>
