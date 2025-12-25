@@ -1,46 +1,20 @@
 import React from 'react';
-import {
-  EuiPanel,
-  EuiTitle,
-  EuiButton,
-  EuiSpacer,
-  EuiHealth
-} from '@elastic/eui';
+import { EuiFlexItem, EuiPanel, EuiButton, EuiHealth, EuiFlexGroup } from '@elastic/eui';
 import { FormattedMessage } from '@osd/i18n/react';
 import './integrations.scss';
+import { integrationIcons, IntegrationIconName } from '../../common/icons';
 
 interface IntegrationItem {
   id: number;
   name: string;
+  logo: string;
   status: 'connected' | 'connect' | 'manual';
-  color: string;
 }
-
-interface LogoPlaceholderProps {
-  name: string;
-  color: string;
-}
-
-const LogoPlaceholder: React.FC<LogoPlaceholderProps> = ({ name, color }) => (
-  <div className="logo-placeholder" style={{ color }}>
-    <span className="logo-icon" aria-hidden="true">❖</span>
-    <span className="logo-text">{name}</span>
-  </div>
-);
 
 const integrationsData: IntegrationItem[] = [
-  { id: 1, name: 'AWS', status: 'connected', color: '#FF9900' },
-  { id: 2, name: 'Google Cloud', status: 'connect', color: '#4285F4' },
-  { id: 3, name: 'Microsoft Azure', status: 'manual', color: '#0089D6' },
-  { id: 4, name: 'Slack', status: 'connect', color: '#4A154B' },
-  { id: 5, name: 'Microsoft Teams', status: 'connected', color: '#6264A7' },
-  { id: 6, name: 'PagerDuty', status: 'connect', color: '#005E1F' },
-  { id: 7, name: 'Splunk', status: 'connected', color: '#000000' },
-  { id: 8, name: 'TheHive', status: 'connect', color: '#FFD900' },
-  { id: 9, name: 'Tines', status: 'connected', color: '#111111' },
-  { id: 10, name: 'AbuseIPDB', status: 'manual', color: '#D93F3C' },
-  { id: 11, name: 'Criminal IP', status: 'connected', color: '#0C2D6B' },
-  { id: 12, name: 'MISP', status: 'manual', color: '#2B2B2B' },
+  { id: 1, name: 'Scopd', logo: 'scope', status: 'connected' },
+  { id: 2, name: 'Google Cloud', logo: 'scope',  status: 'connect' },
+  { id: 3, name: 'Microsoft Azure', logo: 'scope', status: 'manual'},
 ];
 
 const IntegrationsList: React.FC = () => {
@@ -82,48 +56,43 @@ const IntegrationsList: React.FC = () => {
     }
   };
 
-  if (!integrationsData?.length) {
-    return (
-      <div className="integrations-wrapper">
-        <EuiTitle size="m">
-          <h3>
-            <FormattedMessage
-              id="integrations.noIntegrations"
-              defaultMessage="No integrations available"
-            />
-          </h3>
-        </EuiTitle>
-      </div>
-    );
-  }
-
   return (
-    <div >
-      <EuiSpacer size="l" />
-
-      <div className="integrations-grid" role="list">
-        {integrationsData.map((item) => (
-          <EuiPanel
-            key={item.id}
-            className="integration-card"
-            paddingSize="l"
-            hasShadow={false}
-            hasBorder={true}
-            role="listitem"
-            aria-label={`Integration: ${item.name}`}
+    <EuiFlexGroup
+      wrap
+      className="integrations-grid"
+      direction="row"
+      alignItems="stretch"
+      gutterSize="m"
+    >
+      {integrationsData.map((integration) => (
+        <EuiFlexItem
+          key={integration.id}
+          grow={1}
+          style={{ minwidth: 260 }}
+        >
+        <EuiPanel
+          key={integration.id}
+          className="integration-card"
+          hasBorder
+          paddingSize="m"
+        >
+          <EuiFlexGroup className="integration-content"
+          wrap
+          direction="column"
+          alignItems="center"
           >
-            <div className="card-logo">
-              <LogoPlaceholder name={item.name} color={item.color} />
+            <div
+              className="integration-logo"
+            >
             </div>
-
-            <div className="card-footer">
-              {renderCardAction(item.status, item.name)}
-            </div>
-          </EuiPanel>
-        ))}
-      </div>
-    </div>
+            <div className="integration-name">{integration.name}</div>
+              {renderCardAction(integration.status, integration.name)}
+          </EuiFlexGroup>
+        </EuiPanel>
+        </EuiFlexItem>
+      ))}
+    </EuiFlexGroup>
   );
 };
 
-export default React.memo(IntegrationsList);
+export default IntegrationsList;

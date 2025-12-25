@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FormattedMessage, I18nProvider } from '@osd/i18n/react';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { IntegrationsList } from './integrations_list/integrations_list';
+import  IntegrationsList  from './integrations_list/integrations_list';
 import {
   EuiButton,
   EuiHorizontalRule,
@@ -89,7 +89,7 @@ export const IntegrationsApp = ({
                 </EuiTitle>
               </EuiPageHeader>
               <EuiPageContent>
-                <EuiPageContentBody>
+                <EuiPageContentBody grow={1}>
                   <p>Scopd Integration</p>
                   <IntegrationsList />
                 </EuiPageContentBody>

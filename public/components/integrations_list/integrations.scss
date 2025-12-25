@@ -1,60 +1,91 @@
-// Переменные для удобства (можно вынести в отдельный файл variables.scss)
-$gray-light: #f5f7fa; // Фон страницы
-$border-color: #d3dae6;
-$text-subdued: #69707d;
-$btn-manual-color: #535966;
-
-.integrations-wrapper {
-  padding: 24px;
-  background-color: $gray-light;
-  min-height: 100vh;
-}
-
+// Single column layout
 .integrations-grid {
-  display: grid;
-  // Магия адаптивности: колонки от 280px до 1fr.
-  // Это автоматически сделает 3 колонки на больших экранах, 2 на средних и 1 на мобильных.
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px; // Расстояние между карточками
+  gap: 12px;
+  width: 100%;
+  padding: 8px;
 }
 
+// Integration card
 .integration-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  height: 200px; // Фиксированная высота для единообразия
-  background-color: #fff;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
-  // Небольшой ховер эффект для всей карточки (опционально)
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateX(2px);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
   }
 
-  // Зона логотипа занимает доступное пространство и центрируется
-  .card-logo {
-    flex-grow: 1;
+  .integration-content {
     display: flex;
     align-items: center;
-    justify-content: center;
+    padding: 12px;
     width: 100%;
+    box-sizing: border-box;
+  }
 
-    // Стили для SVG внутри (чтобы они не раздувались)
-    img, svg {
-      max-width: 80%;
-      max-height: 60px;
-      object-fit: contain;
+  .integration-logo {
+    font-size: 20px;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+
+  .integration-name {
+    font-weight: 600;
+    color: #1A1A1A;
+    margin-right: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .integration-action {
+    margin-left: auto;
+    flex-shrink: 0;
+
+    .euiButton {
+      min-width: 120px;
+    }
+
+    .card-status {
+      .euiHealth {
+        justify-content: flex-end;
+      }
     }
   }
+}
 
-  // Футер карточки (кнопка или статус)
-  .card-footer {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 40px; // Чтобы кнопки "не прыгали" по высоте
+// Responsive adjustments
+@media (max-width: 768px) {
+  .integrations-grid {
+    max-width: 100%;
+  }
+
+  .integration-card {
+    .integration-content {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .integration-name {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .integration-action {
+      width: 100%;
+      margin-left: 0;
+      margin-top: 8px;
+
+      .euiButton {
+        width: 100%;
+      }
+    }
+  }
+}
+
+// Button overrides
+.euiButton {
+  &--fill {
+    width: auto;
   }
 }
 
@@ -80,7 +111,7 @@ $btn-manual-color: #535966;
 .manual-btn {
   background: transparent;
   border: 1px solid #98a2b3;
-  color: $btn-manual-color;
+  color: yellow;
   padding: 6px 12px;
   border-radius: 4px;
   font-size: 14px;
