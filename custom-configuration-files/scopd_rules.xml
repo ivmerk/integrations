@@ -8,20 +8,283 @@
   </rule>
 </group>
 <group name="dlp,scopd,">
-  <rule id="100190" level="0">
-    <decoded_as>dlp-syslog</decoded_as>
-    <description>Group Scopd DLP</description>
-  </rule>
-  <rule id="100191" level="12">
-    <if_sid>100190</if_sid>
-    <match>event_type="108"</match>
-    <description>DLP: Clipboard with image detected</description>
-    <options>no_full_log</options>
-  </rule>
-  <rule id="100192" level="12">
-    <if_sid>100190</if_sid>
-    <match>event_type="100"</match>
-    <description>DLP: Forbidden app</description>
-    <options>no_full_log</options>
-  </rule>
+
+<!-- Base rule (group all SCOPD DLP events) -->
+<rule id="100099" level="0">
+  <decoded_as>dlp-syslog</decoded_as>
+  <description>SCOPD DLP: Base group</description>
+</rule>
+
+<!-- 100: запуск программы из списка угроз -->
+<rule id="100100" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="100"</match>
+  <description>SCOPD: Threat list — forbidden application launched</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 101: запуск сайта из списка угроз -->
+<rule id="100101" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="101"</match>
+  <description>SCOPD: Threat list — forbidden website opened</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 102: ввод текста из списка угроз -->
+<rule id="100102" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="102"</match>
+  <description>SCOPD: Threat list — forbidden text input detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 103: печать документа -->
+<rule id="100103" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="103"</match>
+  <description>SCOPD: Document print detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 104: копирование на flash-диск -->
+<rule id="100104" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="104"</match>
+  <description>SCOPD: Copy to USB flash drive detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 105: копирование в выбранные папки -->
+<rule id="100105" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="105"</match>
+  <description>SCOPD: Copy to monitored folders detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 106: отправка файла -->
+<rule id="100106" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="106"</match>
+  <description>SCOPD: File sent / transfer detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 107: вставка flash-диска -->
+<rule id="100107" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="107"</match>
+  <description>SCOPD: USB flash drive inserted</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 108: изображение в буфере обмена -->
+<rule id="100108" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="108"</match>
+  <description>SCOPD: Clipboard image detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 109: DLP: чтение документа -->
+<rule id="100109" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="109"</match>
+  <description>DLP: Document read detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 110: DLP: документ в буфере обмена -->
+<rule id="100110" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="110"</match>
+  <description>DLP: Document copied to clipboard</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 111: DLP: текст в буфере обмена -->
+<rule id="100111" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="111"</match>
+  <description>DLP: Text copied to clipboard</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 112: DLP: снимок экрана -->
+<rule id="100112" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="112"</match>
+  <description>DLP: Screenshot taken</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 113: DLP: копирование на flash-диск -->
+<rule id="100113" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="113"</match>
+  <description>DLP: Copy to USB flash drive detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 114: DLP: копирование в выбранные папки -->
+<rule id="100114" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="114"</match>
+  <description>DLP: Copy to monitored folders detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 115: DLP: отправка документа -->
+<rule id="100115" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="115"</match>
+  <description>DLP: Document sent / exfiltration attempt detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 116: DLP: голос -->
+<rule id="100116" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="116"</match>
+  <description>DLP: Voice/audio capture detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 117: нетипичное поведение -->
+<rule id="100117" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="117"</match>
+  <description>SCOPD: Anomalous (non-typical) behavior detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 118: изменение оборудования/софта -->
+<rule id="100118" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="118"</match>
+  <description>SCOPD: Hardware/software change detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 119: возможное удаление клиента -->
+<rule id="100119" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="119"</match>
+  <description>SCOPD: Potential client removal detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 120: нет лица перед веб-камерой -->
+<rule id="100120" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="120"</match>
+  <description>SCOPD: Webcam — no face detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 121: чужое лицо перед веб-камерой -->
+<rule id="100121" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="121"</match>
+  <description>SCOPD: Webcam — unknown face detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 122: более 1-го лица перед веб-камерой -->
+<rule id="100122" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="122"</match>
+  <description>SCOPD: Webcam — multiple faces detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 123: отсрочка выключения ПК -->
+<rule id="100123" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="123"</match>
+  <description>SCOPD: PC shutdown delay detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 124: проблема на клиенте -->
+<rule id="100124" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="124"</match>
+  <description>SCOPD: Client issue detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 125: изменение состояния микрофона -->
+<rule id="100125" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="125"</match>
+  <description>SCOPD: Microphone state changed</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 126: критическое приложение/сайт -->
+<rule id="100126" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="126"</match>
+  <description>SCOPD: Critical application/website detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 127: вход пользователя в систему -->
+<rule id="100127" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="127"</match>
+  <description>SCOPD: User login detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 128: запуск программы из черного списка -->
+<rule id="100128" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="128"</match>
+  <description>SCOPD: Blacklist — forbidden application launched</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 129: DLP: печать документа -->
+<rule id="100129" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="129"</match>
+  <description>DLP: Document print detected</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 130: запуск запрещенной команды в терминале Linux -->
+<rule id="100130" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="130"</match>
+  <description>SCOPD: Linux terminal — forbidden command executed</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 131: USB-устройство было заблокировано -->
+<rule id="100131" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="131"</match>
+  <description>SCOPD: USB device blocked</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 132: DLP: файл в папке -->
+<rule id="100132" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="132"</match>
+  <description>DLP: File detected in monitored folder</description>
+  <options>no_full_log</options>
+</rule>
+
+<!-- 133: крипто-адрес в буфере обмена -->
+<rule id="100133" level="12">
+  <if_sid>100099</if_sid>
+  <match>event_type="133"</match>
+  <description>SCOPD: Cryptocurrency address detected in clipboard</description>
+  <options>no_full_log</options>
+</rule>
+
 </group>
