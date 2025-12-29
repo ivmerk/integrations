@@ -1,8 +1,9 @@
 import React from 'react';
-import { EuiFlexItem, EuiPanel, EuiButton, EuiHealth, EuiFlexGroup } from '@elastic/eui';
+import { EuiPanel, EuiButton, EuiHealth, EuiFlexGroup, EuiFlexItem } from '@elastic/eui';
 import { FormattedMessage } from '@osd/i18n/react';
 import './integrations.scss';
 import { integrationIcons, IntegrationIconName } from '../../common/icons';
+import {IntegrationIcon} from "./integration-icon";
 
 interface IntegrationItem {
   id: number;
@@ -12,9 +13,9 @@ interface IntegrationItem {
 }
 
 const integrationsData: IntegrationItem[] = [
-  { id: 1, name: 'Scopd', logo: 'scope', status: 'connected' },
-  { id: 2, name: 'Google Cloud', logo: 'scope',  status: 'connect' },
-  { id: 3, name: 'Microsoft Azure', logo: 'scope', status: 'manual'},
+  { id: 1, name: 'scopd', logo: 'scope', status: 'connected' },
+  { id: 2, name: 'kubernetes', logo: 'scope',  status: 'connect' },
+  { id: 3, name: 'virusTotal', logo: 'scope', status: 'manual'},
 ];
 
 const IntegrationsList: React.FC = () => {
@@ -81,11 +82,7 @@ const IntegrationsList: React.FC = () => {
           direction="column"
           alignItems="center"
           >
-            <div
-              className="integration-logo"
-            >
-            </div>
-            <div className="integration-name">{integration.name}</div>
+            <IntegrationIcon name={integration.name}/>
               {renderCardAction(integration.status, integration.name)}
           </EuiFlexGroup>
         </EuiPanel>

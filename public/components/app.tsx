@@ -90,7 +90,6 @@ export const IntegrationsApp = ({
               </EuiPageHeader>
               <EuiPageContent>
                 <EuiPageContentBody grow={1}>
-                  <p>Scopd Integration</p>
                   <IntegrationsList />
                 </EuiPageContentBody>
               </EuiPageContent>
