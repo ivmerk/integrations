@@ -16,6 +16,8 @@ const integrationsData: IntegrationItem[] = [
   { id: 1, name: 'scopd', logo: 'scope', status: 'connected' },
   { id: 2, name: 'kubernetes', logo: 'scope',  status: 'connect' },
   { id: 3, name: 'virusTotal', logo: 'scope', status: 'manual'},
+  { id: 4, name: 'aws', logo: 'scope', status: 'manual'},
+  { id: 5, name: 'abuseIpdb', logo: 'scope', status: 'manual'},
 ];
 
 const IntegrationsList: React.FC = () => {
