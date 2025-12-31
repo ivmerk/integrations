@@ -1,4 +1,11 @@
-import {AwsLogo, KubernetesLogo, ScopdLogo, AbuseIPDBLogo} from './logos';
+import {
+  AwsLogo,
+  KubernetesLogo,
+  ScopdLogo,
+  AbuseIPDBLogo,
+  CriminalIPLogo,
+  DockerLogo,
+} from './logos';
 import {VirusTotalLogo} from "./logos";
 
 export const integrationIcons = {
@@ -7,6 +14,8 @@ export const integrationIcons = {
   kubernetes: KubernetesLogo,
   aws: AwsLogo,
   abuseIpdb: AbuseIPDBLogo,
+  criminalIp: CriminalIPLogo,
+  docker: DockerLogo,
 } as const;
 
 export type IntegrationIconName = keyof typeof integrationIcons;

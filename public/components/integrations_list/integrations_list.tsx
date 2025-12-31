@@ -18,6 +18,8 @@ const integrationsData: IntegrationItem[] = [
   { id: 3, name: 'virusTotal', logo: 'scope', status: 'manual'},
   { id: 4, name: 'aws', logo: 'scope', status: 'manual'},
   { id: 5, name: 'abuseIpdb', logo: 'scope', status: 'manual'},
+  { id: 6, name: 'criminalIp', logo: 'scope', status: 'manual'},
+  { id: 7, name: 'docker', logo: 'scope', status: 'manual'},
 ];
 
 const IntegrationsList: React.FC = () => {

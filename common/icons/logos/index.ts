@@ -3,3 +3,5 @@ export {VirusTotalLogo} from './VirusTotalLogo';
 export {KubernetesLogo} from './KubernetesLogo';
 export {AwsLogo} from './AwsLogo';
 export {AbuseIPDBLogo} from './AbuseIPDBLogo';
+export {CriminalIPLogo} from './CriminalIPLogo';
+export {DockerLogo} from './DockerLogo';
