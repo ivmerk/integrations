@@ -5,3 +5,6 @@ export {AwsLogo} from './AwsLogo';
 export {AbuseIPDBLogo} from './AbuseIPDBLogo';
 export {CriminalIPLogo} from './CriminalIPLogo';
 export {DockerLogo} from './DockerLogo';
+export {GoogleCloudLogo} from './GoogleCloudLogo';
+export {JiraLogo} from './JiraLogo';
+export {MaltiverseLogo} from './MaltiverseLogo';

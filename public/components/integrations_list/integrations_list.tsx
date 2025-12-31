@@ -20,6 +20,9 @@ const integrationsData: IntegrationItem[] = [
   { id: 5, name: 'abuseIpdb', logo: 'scope', status: 'manual'},
   { id: 6, name: 'criminalIp', logo: 'scope', status: 'manual'},
   { id: 7, name: 'docker', logo: 'scope', status: 'manual'},
+  { id: 8, name: 'googlecloud', logo: 'scope', status: 'manual'},
+  { id: 9, name: 'jira', logo: 'scope', status: 'manual'},
+  { id: 10, name: 'maltiverse', logo: 'scope', status: 'manual'},
 ];
 
 const IntegrationsList: React.FC = () => {
