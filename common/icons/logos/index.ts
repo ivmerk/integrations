@@ -19,3 +19,4 @@ export {ShuffleLogo} from  './ShuffleLogo';
 export {SlackLogo} from  './SlackLogo';
 export {SplunkLogo} from  './SplunkLogo';
 export {TheHiveLogo} from  './TheHiveLogo';
+export {TinesLogo} from  './TinesLogo';

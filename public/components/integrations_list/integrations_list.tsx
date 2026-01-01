@@ -31,6 +31,7 @@ const integrationsData: IntegrationItem[] = [
   { id: 17, name: 'slack', logo: 'scope', status: 'manual'},
   { id: 18, name: 'splunk', logo: 'scope', status: 'manual'},
   { id: 19, name: 'theHive', logo: 'scope', status: 'manual'},
+  { id: 20, name: 'tines', logo: 'scope', status: 'manual'},
 ];
 
 const IntegrationsList: React.FC = () => {
