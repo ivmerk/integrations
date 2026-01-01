@@ -27,6 +27,7 @@ const integrationsData: IntegrationItem[] = [
   { id: 12, name: 'microsoftTeams', logo: 'scope', status: 'manual'},
   { id: 13, name: 'misp', logo: 'scope', status: 'manual'},
   { id: 14, name: 'pagerDuty', logo: 'scope', status: 'manual'},
+  { id: 15, name: 'serviceNow', logo: 'scope', status: 'manual'},
 ];
 
 const IntegrationsList: React.FC = () => {

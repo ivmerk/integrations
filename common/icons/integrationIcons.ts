@@ -13,6 +13,7 @@ import {
   VirusTotalLogo,
   MISPLogo,
   PagerDutyLogo,
+  ServiceNowLogo,
 } from './logos';
 
 export const integrationIcons = {
@@ -30,6 +31,7 @@ export const integrationIcons = {
   microsoftTeams: MicrosoftTeamsLogo,
   misp: MISPLogo,
   pagerDuty: PagerDutyLogo,
+  serviceNow: ServiceNowLogo,
 } as const;
 
 export type IntegrationIconName = keyof typeof integrationIcons;
