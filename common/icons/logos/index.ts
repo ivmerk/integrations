@@ -10,3 +10,4 @@ export { JiraLogo } from './JiraLogo';
 export { MaltiverseLogo } from './MaltiverseLogo';
 export { MicrosoftAzureLogo } from './MicrosoftAzureLogo';
 export { MicrosoftTeamsLogo } from './MicrosoftTeamsLogo';
+export { MISPLogo } from './MISPLogo';

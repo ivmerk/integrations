@@ -11,6 +11,7 @@ import {
   MicrosoftAzureLogo,
   MicrosoftTeamsLogo,
   VirusTotalLogo,
+  MISPLogo,
 } from './logos';
 
 export const integrationIcons = {
@@ -26,6 +27,7 @@ export const integrationIcons = {
   maltiverse: MaltiverseLogo,
   microsoftAzure: MicrosoftAzureLogo,
   microsoftTeams: MicrosoftTeamsLogo,
+  misp: MISPLogo,
 } as const;
 
 export type IntegrationIconName = keyof typeof integrationIcons;
