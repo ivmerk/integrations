@@ -28,6 +28,7 @@ const integrationsData: IntegrationItem[] = [
   { id: 13, name: 'misp', logo: 'scope', status: 'manual'},
   { id: 14, name: 'pagerDuty', logo: 'scope', status: 'manual'},
   { id: 15, name: 'serviceNow', logo: 'scope', status: 'manual'},
+  { id: 16, name: 'shuffleLogo', logo: 'scope', status: 'manual'},
 ];
 
 const IntegrationsList: React.FC = () => {

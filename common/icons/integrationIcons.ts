@@ -14,6 +14,7 @@ import {
   MISPLogo,
   PagerDutyLogo,
   ServiceNowLogo,
+  ShuffleLogo,
 } from './logos';
 
 export const integrationIcons = {
@@ -32,6 +33,7 @@ export const integrationIcons = {
   misp: MISPLogo,
   pagerDuty: PagerDutyLogo,
   serviceNow: ServiceNowLogo,
+  shuffleLogo: ShuffleLogo,
 } as const;
 
 export type IntegrationIconName = keyof typeof integrationIcons;

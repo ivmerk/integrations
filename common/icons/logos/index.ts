@@ -1,3 +1,5 @@
+import {ShuffleLogo} from "./ShuffleLogo";
+
 export { ScopdLogo } from './ScopdLogo';
 export { VirusTotalLogo } from './VirusTotalLogo';
 export { KubernetesLogo } from './KubernetesLogo';
@@ -13,3 +15,4 @@ export { MicrosoftTeamsLogo } from './MicrosoftTeamsLogo';
 export { MISPLogo } from './MISPLogo';
 export { PagerDutyLogo } from './PagerDutyLogo';
 export {ServiceNowLogo} from './ServiceNowLogo';
+export {ShuffleLogo} from  './ShuffleLogo';
