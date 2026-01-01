@@ -8,7 +8,9 @@ export const SlackLogo = ({ backgroundColor = '#FFFFFF', ...props }: Props) => (
   <svg
     width="498"
     height="127"
+    viewBox="0 0 498 127"
     xmlns="http://www.w3.org/2000/svg"
+    {...props}
   >
     <g
       fill="none"
@@ -36,3 +38,4 @@ export const SlackLogo = ({ backgroundColor = '#FFFFFF', ...props }: Props) => (
     </g>
   </svg>
 );
+

@@ -2,7 +2,6 @@ import React from 'react';
 import { EuiPanel, EuiButton, EuiHealth, EuiFlexGroup, EuiFlexItem } from '@elastic/eui';
 import { FormattedMessage } from '@osd/i18n/react';
 import './integrations.scss';
-import { integrationIcons, IntegrationIconName } from '../../common/icons';
 import {IntegrationIcon} from "./integration-icon";
 
 interface IntegrationItem {
@@ -30,6 +29,8 @@ const integrationsData: IntegrationItem[] = [
   { id: 15, name: 'serviceNow', logo: 'scope', status: 'manual'},
   { id: 16, name: 'shuffle', logo: 'scope', status: 'manual'},
   { id: 17, name: 'slack', logo: 'scope', status: 'manual'},
+  { id: 18, name: 'splunk', logo: 'scope', status: 'manual'},
+  { id: 19, name: 'theHive', logo: 'scope', status: 'manual'},
 ];
 
 const IntegrationsList: React.FC = () => {

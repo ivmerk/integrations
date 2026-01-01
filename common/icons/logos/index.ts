@@ -17,3 +17,5 @@ export { PagerDutyLogo } from './PagerDutyLogo';
 export {ServiceNowLogo} from './ServiceNowLogo';
 export {ShuffleLogo} from  './ShuffleLogo';
 export {SlackLogo} from  './SlackLogo';
+export {SplunkLogo} from  './SplunkLogo';
+export {TheHiveLogo} from  './TheHiveLogo';

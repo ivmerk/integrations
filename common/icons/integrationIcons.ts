@@ -16,6 +16,8 @@ import {
   ServiceNowLogo,
   ShuffleLogo,
   SlackLogo,
+  SplunkLogo,
+  TheHiveLogo,
 } from './logos';
 
 export const integrationIcons = {
@@ -36,6 +38,8 @@ export const integrationIcons = {
   serviceNow: ServiceNowLogo,
   shuffle: ShuffleLogo,
   slack: SlackLogo,
+  splunk: SplunkLogo,
+  theHive: TheHiveLogo,
 } as const;
 
 export type IntegrationIconName = keyof typeof integrationIcons;

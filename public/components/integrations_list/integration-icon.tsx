@@ -7,7 +7,7 @@ type Props = {
   size?: number;
 };
 
-export const IntegrationIcon = ({name, size = 120}: Props) => {
+export const IntegrationIcon = ({name, size = 134}: Props) => {
   const Icon = integrationIcons[name];
 
   if (!Icon) {
