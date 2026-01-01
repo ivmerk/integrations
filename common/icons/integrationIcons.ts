@@ -15,6 +15,7 @@ import {
   PagerDutyLogo,
   ServiceNowLogo,
   ShuffleLogo,
+  SlackLogo,
 } from './logos';
 
 export const integrationIcons = {
@@ -33,7 +34,8 @@ export const integrationIcons = {
   misp: MISPLogo,
   pagerDuty: PagerDutyLogo,
   serviceNow: ServiceNowLogo,
-  shuffleLogo: ShuffleLogo,
+  shuffle: ShuffleLogo,
+  slack: SlackLogo,
 } as const;
 
 export type IntegrationIconName = keyof typeof integrationIcons;

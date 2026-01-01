@@ -16,3 +16,4 @@ export { MISPLogo } from './MISPLogo';
 export { PagerDutyLogo } from './PagerDutyLogo';
 export {ServiceNowLogo} from './ServiceNowLogo';
 export {ShuffleLogo} from  './ShuffleLogo';
+export {SlackLogo} from  './SlackLogo';
