@@ -11,3 +11,4 @@ export { MaltiverseLogo } from './MaltiverseLogo';
 export { MicrosoftAzureLogo } from './MicrosoftAzureLogo';
 export { MicrosoftTeamsLogo } from './MicrosoftTeamsLogo';
 export { MISPLogo } from './MISPLogo';
+export { PagerDutyLogo } from './PagerDutyLogo';
