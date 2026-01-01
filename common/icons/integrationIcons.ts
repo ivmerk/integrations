@@ -6,9 +6,12 @@ import {
   CriminalIPLogo,
   DockerLogo,
   GoogleCloudLogo,
-  JiraLogo, MaltiverseLogo,
+  JiraLogo,
+  MaltiverseLogo,
+  MicrosoftAzureLogo,
+  MicrosoftTeamsLogo,
+  VirusTotalLogo,
 } from './logos';
-import {VirusTotalLogo} from "./logos";
 
 export const integrationIcons = {
   scopd: ScopdLogo,
@@ -21,6 +24,8 @@ export const integrationIcons = {
   googlecloud: GoogleCloudLogo,
   jira: JiraLogo,
   maltiverse: MaltiverseLogo,
+  microsoftAzure: MicrosoftAzureLogo,
+  microsoftTeams: MicrosoftTeamsLogo,
 } as const;
 
 export type IntegrationIconName = keyof typeof integrationIcons;

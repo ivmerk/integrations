@@ -23,6 +23,8 @@ const integrationsData: IntegrationItem[] = [
   { id: 8, name: 'googlecloud', logo: 'scope', status: 'manual'},
   { id: 9, name: 'jira', logo: 'scope', status: 'manual'},
   { id: 10, name: 'maltiverse', logo: 'scope', status: 'manual'},
+  { id: 11, name: 'microsoftAzure', logo: 'scope', status: 'manual'},
+  { id: 12, name: 'microsoftTeams', logo: 'scope', status: 'manual'},
 ];
 
 const IntegrationsList: React.FC = () => {
