@@ -67,8 +67,8 @@ export const AbuseIPDBLogo = ({
         </g>
       </g>
     </svg>
-    <g style={{fontFamily: 'Helvetica, Arial, sans-serif', fontWeight: 'bold', fontSize: '14px'}}>
-      <text x="130" y="40">AbuseIPDB</text>
+    <g style={{fontFamily: 'Helvetica, Arial, sans-serif', fontWeight: 'bold', fontSize: '40px', fill:'#4e7e15'}}>
+      <text x="140" y="65">AbuseIPDB</text>
     </g>
   </svg>
 );
