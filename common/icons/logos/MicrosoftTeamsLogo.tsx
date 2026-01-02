@@ -18,7 +18,7 @@ export const MicrosoftTeamsLogo = ({
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <g transform="scale(0.8) translate(0, 0)">
+    <g transform="translate(5, 560) scale(0.2)">
       <path fill="#5059C9" d="M1554.637,777.5h575.713c54.391,0,98.483,44.092,98.483,98.483c0,0,0,0,0,0v524.398	c0,199.901-162.051,361.952-361.952,361.952h0h-1.711c-199.901,0.028-361.975-162-362.004-361.901c0-0.017,0-0.034,0-0.052V828.971	C1503.167,800.544,1526.211,777.5,1554.637,777.5L1554.637,777.5z"/>
       <circle fill="#5059C9" cx="1943.75" cy="440.583" r="233.25"/>
       <circle fill="#7B83EB" cx="1218.083" cy="336.917" r="336.917"/>
@@ -42,14 +42,24 @@ export const MicrosoftTeamsLogo = ({
 
     {/* Надпись Microsoft Teams справа */}
     <text
-      x="90"
-      y="65"
+      x="700"
+      y="680"
       fill="#5059C9"
-      fontSize="240"
+      fontSize="280"
       fontWeight="600"
       fontFamily="Segoe UI, Arial, sans-serif"
     >
-      Microsoft Teams
+      Microsoft
+    </text>
+    <text
+      x="700"
+      y="980"
+      fill="#5059C9"
+      fontSize="280"
+      fontWeight="600"
+      fontFamily="Segoe UI, Arial, sans-serif"
+    >
+      Teams
     </text>
   </svg>
 );
