@@ -75,17 +75,14 @@ const IntegrationsList: React.FC = () => {
 
   return (
     <EuiFlexGroup
-      wrap
       className="integrations-grid"
-      direction="row"
-      alignItems="stretch"
       gutterSize="m"
     >
       {integrationsData.map((integration) => (
         <EuiFlexItem
+          className="integration-item"
           key={integration.id}
           grow={true}
-          style={{ minWidth: '22%', maxWidth: '24%', marginBottom: '16px' }}
         >
         <EuiPanel
           key={integration.id}
@@ -93,10 +90,8 @@ const IntegrationsList: React.FC = () => {
           hasBorder
           paddingSize="m"
         >
-          <EuiFlexGroup className="integration-content"
-          wrap
-          direction="column"
-          alignItems="center"
+          <EuiFlexGroup
+            className="integration-content"
           >
             <IntegrationIcon name={integration.name}/>
               {renderCardAction(integration.status, integration.name)}
