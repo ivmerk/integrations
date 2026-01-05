@@ -22,7 +22,7 @@ export const MISPLogo = ({ backgroundColor = '#FFFFFF', ...props }: Props) => (
         <path d="M 0,0 H 595.276 V 841.89 H 0 Z" />
       </clipPath>
     </defs>
-    <g transform="translate(-6.2542725,-124.80979)">
+    <g transform="translate(6,-84.80979) scale(0.7)">
       <g
         transform="matrix(0.35277777,0,0,-0.35277777,6.2542725,151.16434)"
       >
