@@ -9,29 +9,30 @@ interface IntegrationItem {
   name: string;
   logo: string;
   status: 'connected' | 'connect' | 'manual';
+  button?: string;
 }
 
 const integrationsData: IntegrationItem[] = [
-  { id: 1, name: 'scopd', logo: 'scope', status: 'connected' },
-  { id: 2, name: 'kubernetes', logo: 'scope',  status: 'connect' },
-  { id: 3, name: 'virusTotal', logo: 'scope', status: 'manual'},
-  { id: 4, name: 'aws', logo: 'scope', status: 'manual'},
-  { id: 5, name: 'abuseIpdb', logo: 'scope', status: 'manual'},
-  { id: 6, name: 'criminalIp', logo: 'scope', status: 'manual'},
-  { id: 7, name: 'docker', logo: 'scope', status: 'manual'},
-  { id: 8, name: 'googlecloud', logo: 'scope', status: 'manual'},
-  { id: 9, name: 'jira', logo: 'scope', status: 'manual'},
-  { id: 10, name: 'maltiverse', logo: 'scope', status: 'manual'},
-  { id: 11, name: 'microsoftAzure', logo: 'scope', status: 'manual'},
-  { id: 12, name: 'microsoftTeams', logo: 'scope', status: 'manual'},
-  { id: 13, name: 'misp', logo: 'scope', status: 'manual'},
-  { id: 14, name: 'pagerDuty', logo: 'scope', status: 'manual'},
-  { id: 15, name: 'serviceNow', logo: 'scope', status: 'manual'},
-  { id: 16, name: 'shuffle', logo: 'scope', status: 'manual'},
-  { id: 17, name: 'slack', logo: 'scope', status: 'manual'},
-  { id: 18, name: 'splunk', logo: 'scope', status: 'manual'},
-  { id: 19, name: 'theHive', logo: 'scope', status: 'manual'},
-  { id: 20, name: 'tines', logo: 'scope', status: 'manual'},
+  { id: 1, name: 'scopd', logo: 'scope', status: 'connected', button: 'Connected' },
+  { id: 2, name: 'kubernetes', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 3, name: 'virusTotal', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 4, name: 'aws', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 5, name: 'abuseIpdb', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 6, name: 'criminalIp', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 7, name: 'docker', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 8, name: 'googlecloud', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 9, name: 'jira', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 10, name: 'maltiverse', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 11, name: 'microsoftAzure', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 12, name: 'microsoftTeams', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 13, name: 'misp', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 14, name: 'pagerDuty', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 15, name: 'serviceNow', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 16, name: 'shuffle', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 17, name: 'slack', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 18, name: 'splunk', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 19, name: 'theHive', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 20, name: 'tines', logo: 'scope', status: 'manual', button: 'Configure' },
 ];
 
 const IntegrationsList: React.FC = () => {
