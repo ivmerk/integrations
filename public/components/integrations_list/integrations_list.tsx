@@ -84,8 +84,8 @@ const IntegrationsList: React.FC = () => {
       {integrationsData.map((integration) => (
         <EuiFlexItem
           key={integration.id}
-          grow={1}
-          style={{ minwidth: 240 }}
+          grow={true}
+          style={{ minWidth: '22%', maxWidth: '24%', marginBottom: '16px' }}
         >
         <EuiPanel
           key={integration.id}
