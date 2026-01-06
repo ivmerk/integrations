@@ -4,7 +4,8 @@ import {
   EuiButton,
   EuiHealth,
   EuiFlexGroup,
-  EuiFlexItem } from '@elastic/eui';
+  EuiFlexItem,
+  EuiPopover } from '@elastic/eui';
 import { FormattedMessage } from '@osd/i18n/react';
 import './integrations.scss';
 import {IntegrationIcon} from "./integration_icon";
@@ -41,7 +42,22 @@ const integrationsData: IntegrationItem[] = [
 ];
 
 const IntegrationsList: React.FC = () => {
-  const renderCardAction = (status: IntegrationItem['status'], name: string) => {
+  const [popoverState, setPopoverState] = React.useState<{ isOpen: boolean; itemId: number | null }>({
+    isOpen: false,
+    itemId: null
+  });
+
+  const onButtonClick = (itemId: number) => {
+    setPopoverState({
+      isOpen: !popoverState.isOpen,
+      itemId: popoverState.itemId === itemId ? null : itemId
+    });
+  };
+
+  const closePopover = () => {
+    setPopoverState({ isOpen: false, itemId: null });
+  };
+  const renderCardAction = (status: IntegrationItem['status'], name: string, id: number) => {
     switch (status) {
       case 'connected':
         return (
@@ -65,14 +81,25 @@ const IntegrationsList: React.FC = () => {
         );
       case 'manual':
         return (
-          <EuiButton
-            size="s"
-            className="manual-btn"
-            onClick={() => console.log(`Configure ${name} manually clicked`)}
-            aria-label={`Configure ${name} manually`}
+          <EuiPopover
+            button={
+              <EuiButton
+                size="s"
+                className="manual-btn"
+                onClick={() => onButtonClick(id)}
+                aria-label={`Configure ${name} manually`}
+              >
+                <FormattedMessage id="integrations.actions.manual" defaultMessage="Configure manually" />
+              </EuiButton>
+            }
+            isOpen={popoverState.isOpen && popoverState.itemId === id}
+            closePopover={closePopover}
+            anchorPosition="downCenter"
           >
-            <FormattedMessage id="integrations.actions.manual" defaultMessage="Configure manually" />
-          </EuiButton>
+            <div style={{ padding: '16px', maxWidth: '300px' }}>
+             This feature will be available later
+            </div>
+          </EuiPopover>
         );
       default:
         return null;
@@ -100,7 +127,7 @@ const IntegrationsList: React.FC = () => {
             className="integration-content"
           >
             <IntegrationIcon name={integration.name}/>
-              {renderCardAction(integration.status, integration.name)}
+              {renderCardAction(integration.status, integration.name, integration.id)}
           </EuiFlexGroup>
         </EuiPanel>
         </EuiFlexItem>
