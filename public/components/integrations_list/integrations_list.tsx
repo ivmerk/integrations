@@ -10,18 +10,21 @@ import { FormattedMessage } from '@osd/i18n/react';
 import './integrations.scss';
 import {IntegrationIcon} from "./integration_icon";
 
+import { VIRUSTOTAL_DOC_URL } from '../../../common/constants';
+
 interface IntegrationItem {
   id: number;
   name: string;
   logo: string;
-  status: 'connected' | 'connect' | 'manual';
+  status: 'connected' | 'connect' | 'manual' | 'forward';
   button?: string;
+  forwardUrl?: string;
 }
 
 const integrationsData: IntegrationItem[] = [
   { id: 1, name: 'scopd', logo: 'scope', status: 'connected', button: 'Connected' },
   { id: 2, name: 'kubernetes', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 3, name: 'virusTotal', logo: 'scope', status: 'manual', button: 'Configure' },
+  { id: 3, name: 'virusTotal', logo: 'scope', status: 'forward', button: 'Configure', forwardUrl: VIRUSTOTAL_DOC_URL },
   { id: 4, name: 'aws', logo: 'scope', status: 'manual', button: 'Configure' },
   { id: 5, name: 'abuseIpdb', logo: 'scope', status: 'manual', button: 'Configure' },
   { id: 6, name: 'criminalIp', logo: 'scope', status: 'manual', button: 'Configure' },
@@ -66,6 +69,18 @@ const IntegrationsList: React.FC = () => {
               <FormattedMessage id="integrations.status.connected" defaultMessage="Connected" />
             </EuiHealth>
           </div>
+        );
+      case 'forward':
+        const integration = integrationsData.find(item => item.id === id);
+        return (
+          <EuiButton
+            size="s"
+            className="forward-btn"
+            onClick={() => integration?.forwardUrl && window.open(integration.forwardUrl, '_blank')}
+            aria-label={`Open ${name} documentation`}
+          >
+            <FormattedMessage id="integrations.actions.documentation" defaultMessage="View documentation" />
+          </EuiButton>
         );
       case 'connect':
         return (

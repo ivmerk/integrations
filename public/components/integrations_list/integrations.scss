@@ -133,3 +133,19 @@
     background-color: rgba(0, 0, 0, 0.05);
   }
 }
+.forward-btn {
+  background: transparent;
+  border: 1px solid #98a2b3;
+  color: black;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+
+  &:hover {
+    border-color: #69707d;
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}
