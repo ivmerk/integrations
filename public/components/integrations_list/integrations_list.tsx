@@ -9,48 +9,24 @@ import {
 import { FormattedMessage } from '@osd/i18n/react';
 import './integrations.scss';
 import {IntegrationIcon} from "./integration_icon";
-
+import { integrationsData } from './integration_data';
+import { IntegrationItem } from './integration_data';
 import { VIRUSTOTAL_DOC_URL } from '../../../common/constants';
 
-interface IntegrationItem {
-  id: number;
-  name: string;
-  logo: string;
-  status: 'connected' | 'connect' | 'manual' | 'forward';
-  button?: string;
-  forwardUrl?: string;
-}
 
-const integrationsData: IntegrationItem[] = [
-  { id: 1, name: 'scopd', logo: 'scope', status: 'connected', button: 'Connected' },
-  { id: 2, name: 'kubernetes', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 3, name: 'virusTotal', logo: 'scope', status: 'forward', button: 'Configure', forwardUrl: VIRUSTOTAL_DOC_URL },
-  { id: 4, name: 'aws', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 5, name: 'abuseIpdb', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 6, name: 'criminalIp', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 7, name: 'docker', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 8, name: 'googlecloud', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 9, name: 'jira', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 10, name: 'maltiverse', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 11, name: 'microsoftAzure', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 12, name: 'microsoftTeams', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 13, name: 'misp', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 14, name: 'pagerDuty', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 15, name: 'serviceNow', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 16, name: 'shuffle', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 17, name: 'slack', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 18, name: 'splunk', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 19, name: 'theHive', logo: 'scope', status: 'manual', button: 'Configure' },
-  { id: 20, name: 'tines', logo: 'scope', status: 'manual', button: 'Configure' },
-];
 
-const IntegrationsList: React.FC = () => {
+
+const IntegrationsList: React.FC = (onScopdButtonClickHandler) => {
+
+
+  const [scopdRulesCondition, setScopdRulesCondition] = React.useState<'enable' | 'disable' | undefined>('disable');
   const [popoverState, setPopoverState] = React.useState<{ isOpen: boolean; itemId: number | null }>({
     isOpen: false,
     itemId: null
   });
 
-  const onButtonClick = (itemId: number) => {
+
+  const onButtonManualClick = (itemId: number) => {
     setPopoverState({
       isOpen: !popoverState.isOpen,
       itemId: popoverState.itemId === itemId ? null : itemId
@@ -60,13 +36,13 @@ const IntegrationsList: React.FC = () => {
   const closePopover = () => {
     setPopoverState({ isOpen: false, itemId: null });
   };
-  const renderCardAction = (status: IntegrationItem['status'], name: string, id: number) => {
-    switch (status) {
+  const renderCardAction = (type: IntegrationItem['type'], name: string, id: number) => {
+    switch (type) {
       case 'connected':
         return (
-          <div className="card-status">
+          <div className="card-type">
             <EuiHealth color="success">
-              <FormattedMessage id="integrations.status.connected" defaultMessage="Connected" />
+              <FormattedMessage id="integrations.type.connected" defaultMessage="Connected" />
             </EuiHealth>
           </div>
         );
@@ -82,7 +58,7 @@ const IntegrationsList: React.FC = () => {
             <FormattedMessage id="integrations.actions.documentation" defaultMessage="View documentation" />
           </EuiButton>
         );
-      case 'connect':
+      case 'auto':
         return (
           <EuiButton
             size="s"
@@ -101,7 +77,7 @@ const IntegrationsList: React.FC = () => {
               <EuiButton
                 size="s"
                 className="manual-btn"
-                onClick={() => onButtonClick(id)}
+                onClick={() => onButtonManualClick(id)}
                 aria-label={`Configure ${name} manually`}
               >
                 <FormattedMessage id="integrations.actions.manual" defaultMessage="Configure manually" />
@@ -142,7 +118,7 @@ const IntegrationsList: React.FC = () => {
             className="integration-content"
           >
             <IntegrationIcon name={integration.name}/>
-              {renderCardAction(integration.status, integration.name, integration.id)}
+              {renderCardAction(integration.type, integration.name, integration.id)}
           </EuiFlexGroup>
         </EuiPanel>
         </EuiFlexItem>
