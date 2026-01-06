@@ -1,5 +1,10 @@
 import React from 'react';
-import { EuiPanel, EuiButton, EuiHealth, EuiFlexGroup, EuiFlexItem } from '@elastic/eui';
+import {
+  EuiPanel,
+  EuiButton,
+  EuiHealth,
+  EuiFlexGroup,
+  EuiFlexItem } from '@elastic/eui';
 import { FormattedMessage } from '@osd/i18n/react';
 import './integrations.scss';
 import {IntegrationIcon} from "./integration_icon";
