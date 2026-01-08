@@ -91,7 +91,7 @@ export const IntegrationsApp = ({
               </EuiPageHeader>
               <EuiPageContent>
                 <EuiPageContentBody grow={1}>
-                  <IntegrationsList />
+                  <IntegrationsList savedObjects={savedObjects} notifications={notifications} http={http} />
                 </EuiPageContentBody>
               </EuiPageContent>
               <EuiPageContent>

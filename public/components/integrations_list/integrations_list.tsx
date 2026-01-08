@@ -12,8 +12,15 @@ import {IntegrationIcon} from "./integration_icon";
 import { integrationsData } from './integration_data';
 import { IntegrationItem } from './integration_data';
 import {getScopedIntegration} from "./get-scopd-integration";
+import { CoreStart } from '../../../../src/core/public';
 
-const IntegrationsList: React.FC = () => {
+interface IntegrationsListProps {
+  savedObjects: CoreStart['savedObjects'];
+  notifications: CoreStart['notifications'];
+  http: CoreStart['http'];
+}
+
+const IntegrationsList: React.FC = ({savedObjects, notifications, http}) => {
 
   const [scopdRulesCondition, setScopdRulesCondition] = React.useState<'enable' | 'disable'>('disable');
   const [popoverState, setPopoverState] = React.useState<{ isOpen: boolean; itemId: number | null }>({
@@ -25,7 +32,7 @@ const IntegrationsList: React.FC = () => {
   if (scopdItemIntegrationsData) {
     scopdItemIntegrationsData.button = scopdRulesCondition;
     scopdItemIntegrationsData.buttonClickHandler = () => {
-      getScopedIntegration();
+      getScopedIntegration({savedObjects, notifications, http});
       setScopdRulesCondition(scopdRulesCondition === 'enable' ? 'disable' : 'enable');
       console.log(`Connect!!! to ${scopdItemIntegrationsData.name} clicked`)};
       console.log(scopdRulesCondition);
