@@ -47,29 +47,6 @@ export const IntegrationsApp = ({
   savedObjects,
   navigation,
 }: IntegrationsAppDeps) => {
-  const [buttonText, setButtonText] = useState<string | undefined>('disable');
-
-
-  const onScopdButtonClickHandler = async () => {
-    let fileContent;
-    if (buttonText === 'disable') {
-      setButtonText('enable');
-    }
-    console.log('click',buttonText);
-
-//    await saveObject({savedObjects, notifications});
-//    await login({http, notifications});
-//    fileContent = await loadConfigFile({http,fileName: SCOPD_RULES_FILE_NAME});
-//    await uploadRulesFile({http, fileContent});
-//    fileContent = await loadConfigFile({http,fileName: SCOPD_DECODER_FILE_NAME});
-//    await uploadDecoderFile({http, fileContent} );
-//    fileContent = await loadConfigFile({http,fileName: SCOPD_AGENT_CONF_FILE_NAME});
-//    await uploadAgentConfFile({http, fileContent});
-//    const confFileContent = await getConfig({http});
-//    fileContent = await loadConfigFile({http,fileName: SCOPD_OSSEC_CONF_FILE_NAME});
-//    await updateAgentConfFile({http, confFileContent, fileContent});
-//    await restartManager({http});
-  };
   // Render the application DOM.
   // Note that `navigation.ui.TopNavMenu` is a stateful component exported on the `navigation` plugin's start contract.
   return (
@@ -92,33 +69,6 @@ export const IntegrationsApp = ({
               <EuiPageContent>
                 <EuiPageContentBody grow={1}>
                   <IntegrationsList savedObjects={savedObjects} notifications={notifications} http={http} />
-                </EuiPageContentBody>
-              </EuiPageContent>
-              <EuiPageContent>
-                <EuiPageContentHeader>
-                  <EuiTitle>
-                    <h2>
-                      <FormattedMessage
-                        id="integration.congratulationsTitle"
-                        defaultMessage="Scopd Integration"
-                      />
-                    </h2>
-                  </EuiTitle>
-                </EuiPageContentHeader>
-                <EuiPageContentBody>
-                  <EuiText>
-                    <EuiHorizontalRule />
-                    <p>
-                      <FormattedMessage
-                        id="integration.buttonTextLabel"
-                        defaultMessage="Field text: {text}"
-                        values={{ text: buttonText || 'Unknown' }}
-                      />
-                    </p>
-                    <EuiButton type="primary" size="s" onClick={onScopdButtonClickHandler} isDisabled={buttonText === 'enable'}>
-                      <FormattedMessage id="integration.buttonText" defaultMessage="Enable" />
-                    </EuiButton>
-                  </EuiText>
                 </EuiPageContentBody>
               </EuiPageContent>
             </EuiPageBody>
