@@ -131,17 +131,31 @@ const IntegrationsList: React.FC = ({savedObjects, notifications, http} : Integr
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
-      await login({http, notifications});
-      return await getRulesFilesList({http});
+      try {
+        await login({http, notifications});
+        const rulesFilesList = await getRulesFilesList({http});
+        if (isMounted && rulesFilesList?.find(item => item.filename === SCOPD_RULES_FILE_NAME)) {
+          setScopdRulesCondition('enable');
+        }
+      } catch (error) {
+        console.error('Error in fetchData:', error);
+        notifications.toasts.addError(error, {
+          title: 'Failed to load integration data',
+          toastMessage: 'Could not connect to the server. Please try again later.'
+        });
+      }
     };
 
-    fetchData().then((rulesFilesList) => {
-      if( rulesFilesList.find(item => item.filename === SCOPD_RULES_FILE_NAME))
-      {
-        setScopdRulesCondition('enable');
-      }
-    });
+    fetchData();
+
+    return () => {
+      isMounted = false;
+      scopdItemIntegrationsData.button = null;
+      scopdItemIntegrationsData.buttonClickHandler = null;
+      };
   }, [http, notifications]);
   return (
     <EuiFlexGroup
