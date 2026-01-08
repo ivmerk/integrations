@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   EuiPanel,
   EuiButton,
@@ -20,7 +20,7 @@ interface IntegrationsListProps {
   http: CoreStart['http'];
 }
 
-const IntegrationsList: React.FC = ({savedObjects, notifications, http}) => {
+const IntegrationsList: React.FC = ({savedObjects, notifications, http} : IntegrationsListProps) => {
 
   const [scopdRulesCondition, setScopdRulesCondition] = React.useState<'enable' | 'disable'>('disable');
   const [popoverState, setPopoverState] = React.useState<{ isOpen: boolean; itemId: number | null }>({
@@ -110,6 +110,9 @@ const IntegrationsList: React.FC = ({savedObjects, notifications, http}) => {
     }
   };
 
+  useEffect(() => {
+    console.log('integrationsData', integrationsData);
+  }, []);
   return (
     <EuiFlexGroup
       className="integrations-grid"
