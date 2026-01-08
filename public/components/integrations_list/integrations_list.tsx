@@ -15,6 +15,7 @@ import {getScopedIntegration} from "./get-scopd-integration";
 import { CoreStart } from '../../../../src/core/public';
 import {login} from "../services/login";
 import {getRulesFilesList} from "../services/get-rules-files-list";
+import {SCOPD_RULES_FILE_NAME} from "../../../common/constants";
 
 interface IntegrationsListProps {
   savedObjects: CoreStart['savedObjects'];
@@ -35,10 +36,11 @@ const IntegrationsList: React.FC = ({savedObjects, notifications, http} : Integr
     scopdItemIntegrationsData.button = scopdRulesCondition;
     scopdItemIntegrationsData.buttonClickHandler = () => {
       getScopedIntegration({savedObjects, notifications, http});
-      setScopdRulesCondition(scopdRulesCondition === 'enable' ? 'disable' : 'enable');
-      console.log(`Connect!!! to ${scopdItemIntegrationsData.name} clicked`)};
+      setScopdRulesCondition('enable');
+      console.log(`Connect!!! to ${scopdItemIntegrationsData.name} clicked`);
       console.log(scopdRulesCondition);
   }
+    };
 
   const onButtonManualClick = (itemId: number) => {
     setPopoverState({
@@ -78,11 +80,23 @@ const IntegrationsList: React.FC = ({savedObjects, notifications, http} : Integr
             size="s"
             fill={false}
             className="connect-btn"
-            onClick={() => {console.log(`Connect to ${integration?.name} clicked`, integrationsData);
-              integration?.buttonClickHandler()}}
+            onClick={
+            () => {
+              console.log(
+                `Connect to ${integration?.name} clicked`, integrationsData
+              );
+              integration?.buttonClickHandler()
+            }
+          }
             aria-label={`Connect to ${name}`}
           >
-            <FormattedMessage id="integrations.actions.connect" defaultMessage="Connect" />
+            {scopdRulesCondition === 'enable' ? (
+              <EuiHealth color="success">
+                <FormattedMessage id="integrations.type.connected" defaultMessage="Connected" />
+              </EuiHealth>
+            ) : (
+              <FormattedMessage id="integrations.actions.connect" defaultMessage="Connect" />
+            )}
           </EuiButton>
         );
       case 'manual':
@@ -115,11 +129,15 @@ const IntegrationsList: React.FC = ({savedObjects, notifications, http} : Integr
   useEffect(() => {
     const fetchData = async () => {
       await login({http, notifications});
-      await getRulesFilesList({http});
-      console.log('integrationsData', integrationsData);
+      return await getRulesFilesList({http});
     };
 
-    fetchData();
+    fetchData().then((rulesFilesList) => {
+      if( rulesFilesList.find(item => item.filename === SCOPD_RULES_FILE_NAME))
+      {
+        setScopdRulesCondition('enable');
+      }
+    });
   }, [http, notifications]);
   return (
     <EuiFlexGroup

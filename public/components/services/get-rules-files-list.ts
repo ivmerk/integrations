@@ -12,7 +12,6 @@ export async function getRulesFilesList({http}: {http: CoreStart['http']}) {
         path:'/rules/files'
         })
     });
-    console.log(response.data.affected_items);
       return response.data.affected_items;
   } catch (error) {
     console.error('Error getting rules list:', error);
