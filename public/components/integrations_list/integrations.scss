@@ -109,11 +109,20 @@
 
 // 2. Кнопка "Connect" (Используем EuiButton, но можем допилить стили)
 .connect-btn {
-  min-width: 100px;
-  // EUI Button уже отзывчивая (hover, focus, active).
-  // Если нужно переопределить цвет рамки на специфический синий:
-  // color: #006BB4;
-  // border-color: #006BB4;
+  background: transparent;
+  border: 1px solid #98a2b3;
+  color: black;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+
+  &:hover {
+    border-color: #69707d;
+    background-color: rgba(0, 0, 0, 0.05);
+  }
 }
 
 // 3. Кнопка "Configure manually" (Кастомная серая кнопка)

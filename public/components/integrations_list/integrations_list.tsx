@@ -11,20 +11,25 @@ import './integrations.scss';
 import {IntegrationIcon} from "./integration_icon";
 import { integrationsData } from './integration_data';
 import { IntegrationItem } from './integration_data';
-import { VIRUSTOTAL_DOC_URL } from '../../../common/constants';
+import {getScopedIntegration} from "./get-scopd-integration";
 
+const IntegrationsList: React.FC = () => {
 
-
-
-const IntegrationsList: React.FC = (onScopdButtonClickHandler) => {
-
-
-  const [scopdRulesCondition, setScopdRulesCondition] = React.useState<'enable' | 'disable' | undefined>('disable');
+  const [scopdRulesCondition, setScopdRulesCondition] = React.useState<'enable' | 'disable'>('disable');
   const [popoverState, setPopoverState] = React.useState<{ isOpen: boolean; itemId: number | null }>({
     isOpen: false,
     itemId: null
   });
 
+  const scopdItemIntegrationsData = integrationsData.find(item => item.id === 1);
+  if (scopdItemIntegrationsData) {
+    scopdItemIntegrationsData.button = scopdRulesCondition;
+    scopdItemIntegrationsData.buttonClickHandler = () => {
+      getScopedIntegration();
+      setScopdRulesCondition(scopdRulesCondition === 'enable' ? 'disable' : 'enable');
+      console.log(`Connect!!! to ${scopdItemIntegrationsData.name} clicked`)};
+      console.log(scopdRulesCondition);
+  }
 
   const onButtonManualClick = (itemId: number) => {
     setPopoverState({
@@ -37,6 +42,7 @@ const IntegrationsList: React.FC = (onScopdButtonClickHandler) => {
     setPopoverState({ isOpen: false, itemId: null });
   };
   const renderCardAction = (type: IntegrationItem['type'], name: string, id: number) => {
+    const integration = integrationsData.find(item => item.id === id);
     switch (type) {
       case 'connected':
         return (
@@ -47,7 +53,6 @@ const IntegrationsList: React.FC = (onScopdButtonClickHandler) => {
           </div>
         );
       case 'forward':
-        const integration = integrationsData.find(item => item.id === id);
         return (
           <EuiButton
             size="s"
@@ -64,7 +69,8 @@ const IntegrationsList: React.FC = (onScopdButtonClickHandler) => {
             size="s"
             fill={false}
             className="connect-btn"
-            onClick={() => console.log(`Connect to ${name} clicked`)}
+            onClick={() => {console.log(`Connect to ${integration?.name} clicked`, integrationsData);
+              integration?.buttonClickHandler()}}
             aria-label={`Connect to ${name}`}
           >
             <FormattedMessage id="integrations.actions.connect" defaultMessage="Connect" />
@@ -88,7 +94,7 @@ const IntegrationsList: React.FC = (onScopdButtonClickHandler) => {
             anchorPosition="downCenter"
           >
             <div style={{ padding: '16px', maxWidth: '300px' }}>
-             This feature will be available later
+             This feature will be available late
             </div>
           </EuiPopover>
         );

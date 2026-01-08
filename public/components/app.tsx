@@ -91,7 +91,7 @@ export const IntegrationsApp = ({
               </EuiPageHeader>
               <EuiPageContent>
                 <EuiPageContentBody grow={1}>
-                  <IntegrationsList onScopdButtonClickHandler={onScopdButtonClickHandler}/>
+                  <IntegrationsList />
                 </EuiPageContentBody>
               </EuiPageContent>
               <EuiPageContent>
