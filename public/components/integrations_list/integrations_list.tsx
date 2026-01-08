@@ -75,7 +75,16 @@ const IntegrationsList: React.FC = ({savedObjects, notifications, http} : Integr
           </EuiButton>
         );
       case 'auto':
+      if (integration?.button == 'enable') {
         return (
+          <div className="card-type">
+            <EuiHealth color="success">
+              <FormattedMessage id="integrations.type.connected" defaultMessage="Connected" />
+            </EuiHealth>
+          </div>
+        );
+      } else {
+          return (
           <EuiButton
             size="s"
             fill={false}
@@ -90,15 +99,10 @@ const IntegrationsList: React.FC = ({savedObjects, notifications, http} : Integr
           }
             aria-label={`Connect to ${name}`}
           >
-            {scopdRulesCondition === 'enable' ? (
-              <EuiHealth color="success">
-                <FormattedMessage id="integrations.type.connected" defaultMessage="Connected" />
-              </EuiHealth>
-            ) : (
               <FormattedMessage id="integrations.actions.connect" defaultMessage="Connect" />
-            )}
           </EuiButton>
         );
+      };
       case 'manual':
         return (
           <EuiPopover
@@ -117,7 +121,7 @@ const IntegrationsList: React.FC = ({savedObjects, notifications, http} : Integr
             anchorPosition="downCenter"
           >
             <div style={{ padding: '16px', maxWidth: '300px' }}>
-             This feature will be available late
+             This feature will be available later
             </div>
           </EuiPopover>
         );
