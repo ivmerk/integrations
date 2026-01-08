@@ -13,6 +13,8 @@ import { integrationsData } from './integration_data';
 import { IntegrationItem } from './integration_data';
 import {getScopedIntegration} from "./get-scopd-integration";
 import { CoreStart } from '../../../../src/core/public';
+import {login} from "../services/login";
+import {getRulesFilesList} from "../services/get-rules-files-list";
 
 interface IntegrationsListProps {
   savedObjects: CoreStart['savedObjects'];
@@ -111,8 +113,14 @@ const IntegrationsList: React.FC = ({savedObjects, notifications, http} : Integr
   };
 
   useEffect(() => {
-    console.log('integrationsData', integrationsData);
-  }, []);
+    const fetchData = async () => {
+      await login({http, notifications});
+      await getRulesFilesList({http});
+      console.log('integrationsData', integrationsData);
+    };
+
+    fetchData();
+  }, [http, notifications]);
   return (
     <EuiFlexGroup
       className="integrations-grid"
