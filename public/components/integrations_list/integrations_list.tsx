@@ -1,129 +1,190 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   EuiPanel,
-  EuiTitle,
   EuiButton,
-  EuiSpacer,
-  EuiHealth
-} from '@elastic/eui';
+  EuiHealth,
+  EuiFlexGroup,
+  EuiFlexItem,
+  EuiPopover } from '@elastic/eui';
 import { FormattedMessage } from '@osd/i18n/react';
 import './integrations.scss';
+import {IntegrationIcon} from "./integration_icon";
+import { integrationsData } from './integration_data';
+import { IntegrationItem } from './integration_data';
+import {getScopedIntegration} from "./get-scopd-integration";
+import { CoreStart } from '../../../../src/core/public';
+import {login} from "../services/login";
+import {getRulesFilesList} from "../services/get-rules-files-list";
+import {SCOPD_RULES_FILE_NAME} from "../../../common/constants";
 
-interface IntegrationItem {
-  id: number;
-  name: string;
-  status: 'connected' | 'connect' | 'manual';
-  color: string;
+interface IntegrationsListProps {
+  savedObjects: CoreStart['savedObjects'];
+  notifications: CoreStart['notifications'];
+  http: CoreStart['http'];
 }
 
-interface LogoPlaceholderProps {
-  name: string;
-  color: string;
-}
+const IntegrationsList: React.FC = ({savedObjects, notifications, http} : IntegrationsListProps) => {
 
-const LogoPlaceholder: React.FC<LogoPlaceholderProps> = ({ name, color }) => (
-  <div className="logo-placeholder" style={{ color }}>
-    <span className="logo-icon" aria-hidden="true">❖</span>
-    <span className="logo-text">{name}</span>
-  </div>
-);
+  const [scopdRulesCondition, setScopdRulesCondition] = React.useState<'enable' | 'disable'>('disable');
+  const [popoverState, setPopoverState] = React.useState<{ isOpen: boolean; itemId: number | null }>({
+    isOpen: false,
+    itemId: null
+  });
 
-const integrationsData: IntegrationItem[] = [
-  { id: 1, name: 'AWS', status: 'connected', color: '#FF9900' },
-  { id: 2, name: 'Google Cloud', status: 'connect', color: '#4285F4' },
-  { id: 3, name: 'Microsoft Azure', status: 'manual', color: '#0089D6' },
-  { id: 4, name: 'Slack', status: 'connect', color: '#4A154B' },
-  { id: 5, name: 'Microsoft Teams', status: 'connected', color: '#6264A7' },
-  { id: 6, name: 'PagerDuty', status: 'connect', color: '#005E1F' },
-  { id: 7, name: 'Splunk', status: 'connected', color: '#000000' },
-  { id: 8, name: 'TheHive', status: 'connect', color: '#FFD900' },
-  { id: 9, name: 'Tines', status: 'connected', color: '#111111' },
-  { id: 10, name: 'AbuseIPDB', status: 'manual', color: '#D93F3C' },
-  { id: 11, name: 'Criminal IP', status: 'connected', color: '#0C2D6B' },
-  { id: 12, name: 'MISP', status: 'manual', color: '#2B2B2B' },
-];
+  const scopdItemIntegrationsData = integrationsData.find(item => item.id === 1);
+  if (scopdItemIntegrationsData) {
+    scopdItemIntegrationsData.button = scopdRulesCondition;
+    scopdItemIntegrationsData.buttonClickHandler = () => {
+      getScopedIntegration({savedObjects, notifications, http});
+      setScopdRulesCondition('enable');
+      console.log(`Connect!!! to ${scopdItemIntegrationsData.name} clicked`);
+      console.log(scopdRulesCondition);
+  }
+    };
 
-const IntegrationsList: React.FC = () => {
-  const renderCardAction = (status: IntegrationItem['status'], name: string) => {
-    switch (status) {
+  const onButtonManualClick = (itemId: number) => {
+    setPopoverState({
+      isOpen: !popoverState.isOpen,
+      itemId: popoverState.itemId === itemId ? null : itemId
+    });
+  };
+
+  const closePopover = () => {
+    setPopoverState({ isOpen: false, itemId: null });
+  };
+  const renderCardAction = (type: IntegrationItem['type'], name: string, id: number) => {
+    const integration = integrationsData.find(item => item.id === id);
+    switch (type) {
       case 'connected':
         return (
-          <div className="card-status">
+          <div className="card-type">
             <EuiHealth color="success">
-              <FormattedMessage id="integrations.status.connected" defaultMessage="Connected" />
+              <FormattedMessage id="integrations.type.connected" defaultMessage="Connected" />
             </EuiHealth>
           </div>
         );
-      case 'connect':
+      case 'forward':
         return (
+          <EuiButton
+            size="s"
+            className="forward-btn"
+            onClick={() => integration?.forwardUrl && window.open(integration.forwardUrl, '_blank')}
+            aria-label={`Open ${name} documentation`}
+          >
+            <FormattedMessage id="integrations.actions.documentation" defaultMessage="View documentation" />
+          </EuiButton>
+        );
+      case 'auto':
+      if (integration?.button == 'enable') {
+        return (
+          <div className="card-type">
+            <EuiHealth color="success">
+              <FormattedMessage id="integrations.type.connected" defaultMessage="Connected" />
+            </EuiHealth>
+          </div>
+        );
+      } else {
+          return (
           <EuiButton
             size="s"
             fill={false}
             className="connect-btn"
-            onClick={() => console.log(`Connect to ${name} clicked`)}
+            onClick={
+            () => {
+              console.log(
+                `Connect to ${integration?.name} clicked`, integrationsData
+              );
+              integration?.buttonClickHandler()
+            }
+          }
             aria-label={`Connect to ${name}`}
           >
-            <FormattedMessage id="integrations.actions.connect" defaultMessage="Connect" />
+              <FormattedMessage id="integrations.actions.connect" defaultMessage="Connect" />
           </EuiButton>
         );
+      };
       case 'manual':
         return (
-          <EuiButton
-            size="s"
-            className="manual-btn"
-            onClick={() => console.log(`Configure ${name} manually clicked`)}
-            aria-label={`Configure ${name} manually`}
+          <EuiPopover
+            button={
+              <EuiButton
+                size="s"
+                className="manual-btn"
+                onClick={() => onButtonManualClick(id)}
+                aria-label={`Configure ${name} manually`}
+              >
+                <FormattedMessage id="integrations.actions.manual" defaultMessage="Configure manually" />
+              </EuiButton>
+            }
+            isOpen={popoverState.isOpen && popoverState.itemId === id}
+            closePopover={closePopover}
+            anchorPosition="downCenter"
           >
-            <FormattedMessage id="integrations.actions.manual" defaultMessage="Configure manually" />
-          </EuiButton>
+            <div style={{ padding: '16px', maxWidth: '300px' }}>
+             This feature will be available later
+            </div>
+          </EuiPopover>
         );
       default:
         return null;
     }
   };
 
-  if (!integrationsData?.length) {
-    return (
-      <div className="integrations-wrapper">
-        <EuiTitle size="m">
-          <h3>
-            <FormattedMessage
-              id="integrations.noIntegrations"
-              defaultMessage="No integrations available"
-            />
-          </h3>
-        </EuiTitle>
-      </div>
-    );
-  }
+  useEffect(() => {
+    let isMounted = true;
 
+    const fetchData = async () => {
+      try {
+        await login({http, notifications});
+        const rulesFilesList = await getRulesFilesList({http});
+        if (isMounted && rulesFilesList?.find(item => item.filename === SCOPD_RULES_FILE_NAME)) {
+          setScopdRulesCondition('enable');
+        }
+      } catch (error) {
+        console.error('Error in fetchData:', error);
+        notifications.toasts.addError(error, {
+          title: 'Failed to load integration data',
+          toastMessage: 'Could not connect to the server. Please try again later.'
+        });
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      isMounted = false;
+      scopdItemIntegrationsData.button = null;
+      scopdItemIntegrationsData.buttonClickHandler = null;
+      };
+  }, [http, notifications]);
   return (
-    <div >
-      <EuiSpacer size="l" />
-
-      <div className="integrations-grid" role="list">
-        {integrationsData.map((item) => (
-          <EuiPanel
-            key={item.id}
-            className="integration-card"
-            paddingSize="l"
-            hasShadow={false}
-            hasBorder={true}
-            role="listitem"
-            aria-label={`Integration: ${item.name}`}
+    <EuiFlexGroup
+      className="integrations-grid"
+      gutterSize="m"
+    >
+      {integrationsData.map((integration) => (
+        <EuiFlexItem
+          className="integration-item"
+          key={integration.id}
+          grow={true}
+        >
+        <EuiPanel
+          key={integration.id}
+          className="integration-card"
+          hasBorder
+          paddingSize="m"
+        >
+          <EuiFlexGroup
+            className="integration-content"
           >
-            <div className="card-logo">
-              <LogoPlaceholder name={item.name} color={item.color} />
-            </div>
-
-            <div className="card-footer">
-              {renderCardAction(item.status, item.name)}
-            </div>
-          </EuiPanel>
-        ))}
-      </div>
-    </div>
+            <IntegrationIcon name={integration.name}/>
+              {renderCardAction(integration.type, integration.name, integration.id)}
+          </EuiFlexGroup>
+        </EuiPanel>
+        </EuiFlexItem>
+      ))}
+    </EuiFlexGroup>
   );
 };
 
-export default React.memo(IntegrationsList);
+export default IntegrationsList;
