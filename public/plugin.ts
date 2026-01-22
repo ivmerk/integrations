@@ -1,5 +1,5 @@
 import { i18n } from '@osd/i18n';
-import { AppMountParameters, CoreSetup, CoreStart, Plugin } from '../../../src/core/public';
+import { AppMountParameters, CoreSetup, CoreStart, Plugin } from '../../core/public';
 import {
   IntegrationsPluginSetup,
   IntegrationsPluginStart,
@@ -47,7 +47,7 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
 
     // Return methods that should be available to other plugins
     return {
-      getGresting() {
+      getGreeting() {
         return i18n.translate('integrations.greetingText', {
           defaultMessage: 'Hello from {name}!',
           values: {
