@@ -1,8 +1,9 @@
 import { IRouter } from '../../../../src/core/server';
 import { schema } from '@osd/config-schema';
 import { Logger } from '../../../../src/core/server';
-import {CONFIGURATION_FILES_PATH} from "../../common/constants";
+import {CONFIGURATION_FILES_PATH, DEVICES_INDEX} from "../../common/constants";
 import {readFileContent} from "../../common/file_utils";
+import {generateUlid} from "../utils/ulid";
 
 interface RouteDependencies {
   logger: Logger;
@@ -97,6 +98,124 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
               details: error instanceof Error ? error.toString() : String(error)
             }
           }
+        });
+      }
+    }
+  );
+
+  // POST /api/integrations/device — Create a new device
+  router.post(
+    {
+      path: '/api/integrations/device',
+      validate: {
+        body: schema.object({
+          name: schema.string(),
+          connection: schema.string(),
+          groups_filter: schema.string(),
+          allowed_ips: schema.maybe(schema.string()),
+          rules_file: schema.maybe(schema.string()),
+          decoders_file: schema.maybe(schema.string()),
+        }),
+      },
+    },
+    async (context, request, response) => {
+      try {
+        const client = context.core.opensearch.client.asCurrentUser;
+        const uid = generateUlid();
+        const now = new Date().toISOString();
+
+        const document = {
+          uid,
+          name: request.body.name,
+          connection: request.body.connection,
+          groups_filter: request.body.groups_filter,
+          allowed_ips: request.body.allowed_ips ?? null,
+          rules_file: request.body.rules_file ?? null,
+          decoders_file: request.body.decoders_file ?? null,
+          created_at: now,
+        };
+
+        await client.index({
+          index: DEVICES_INDEX,
+          id: uid,
+          body: document,
+          refresh: 'wait_for',
+        });
+
+        deps.logger.info(`Device created with uid=${uid}`);
+
+        return response.ok({
+          body: { uid },
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        deps.logger.error(`Failed to create device: ${errorMessage}`, { error });
+
+        return response.customError({
+          statusCode: 500,
+          body: {
+            message: `Failed to create device: ${errorMessage}`,
+            attributes: { details: error instanceof Error ? error.toString() : String(error) },
+          },
+        });
+      }
+    }
+  );
+
+  // GET /api/integrations/device — Get one device by uid, or all devices
+  router.get(
+    {
+      path: '/api/integrations/device',
+      validate: {
+        query: schema.object({
+          uid: schema.maybe(schema.string()),
+        }),
+      },
+    },
+    async (context, request, response) => {
+      try {
+        const client = context.core.opensearch.client.asCurrentUser;
+        const { uid } = request.query;
+
+        if (uid) {
+          const result = await client.get({ index: DEVICES_INDEX, id: uid });
+          return response.ok({ body: result.body._source });
+        }
+
+        // Return all devices
+        const result = await client.search({
+          index: DEVICES_INDEX,
+          body: { query: { match_all: {} } },
+          size: 10000,
+        });
+
+        const devices = result.body.hits.hits.map((hit: any) => hit._source);
+        return response.ok({ body: devices });
+      } catch (error) {
+        const statusCode = (error as any)?.statusCode;
+
+        if (statusCode === 404) {
+          // Index or document not found
+          const { uid } = request.query;
+          if (uid) {
+            return response.customError({
+              statusCode: 404,
+              body: { message: `Device with uid=${uid} not found` },
+            });
+          }
+          // Index doesn't exist yet — return empty array
+          return response.ok({ body: [] });
+        }
+
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        deps.logger.error(`Failed to get device(s): ${errorMessage}`, { error });
+
+        return response.customError({
+          statusCode: 500,
+          body: {
+            message: `Failed to get device(s): ${errorMessage}`,
+            attributes: { details: error instanceof Error ? error.toString() : String(error) },
+          },
         });
       }
     }
