@@ -14,6 +14,25 @@ interface IntegrationStatusAttributes {
   updated_at?: string;
 }
 
+function isValidIpOrCidr(value: string): boolean {
+  const cidrMatch = value.match(/^(.+)\/(\d+)$/);
+  const ip = cidrMatch ? cidrMatch[1] : value;
+  const prefix = cidrMatch ? Number(cidrMatch[2]) : null;
+
+  // Validate IPv4
+  const parts = ip.split('.');
+  if (parts.length !== 4) return false;
+  for (const part of parts) {
+    const num = Number(part);
+    if (!Number.isInteger(num) || num < 0 || num > 255 || part !== String(num)) return false;
+  }
+
+  // Validate CIDR prefix if present
+  if (prefix !== null && (prefix < 0 || prefix > 32)) return false;
+
+  return true;
+}
+
 export function defineRoutes(router: IRouter, deps: RouteDependencies) {
 
   router.get(
@@ -115,7 +134,13 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
             meta: { description: 'Only "syslog" is supported' },
           }),
           groups_filter: schema.string(),
-          allowed_ips: schema.maybe(schema.string()),
+          allowed_ips: schema.maybe(schema.string({
+            validate(value) {
+              if (!isValidIpOrCidr(value)) {
+                return 'allowed_ips must be a valid IP address or CIDR network';
+              }
+            },
+          })),
           rules_file: schema.maybe(schema.string()),
           decoders_file: schema.maybe(schema.string()),
         }),

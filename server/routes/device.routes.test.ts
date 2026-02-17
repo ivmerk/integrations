@@ -247,6 +247,90 @@ describe('Device API routes', () => {
         })
       ).not.toThrow();
     });
+
+    // Test case 7: POST with invalid allowed_ips
+    it('should reject invalid IP address (test case 7)', () => {
+      const postConfig = router.routes['POST /api/integrations/device'].config;
+      const bodySchema = postConfig.validate.body;
+
+      expect(() =>
+        bodySchema.validate({
+          name: 'Scopd DLP',
+          connection: 'syslog',
+          groups_filter: 'scopd',
+          allowed_ips: '999.1.1.1',
+        })
+      ).toThrow(/allowed_ips must be a valid IP address or CIDR network/);
+    });
+
+    it('should reject invalid CIDR prefix', () => {
+      const postConfig = router.routes['POST /api/integrations/device'].config;
+      const bodySchema = postConfig.validate.body;
+
+      expect(() =>
+        bodySchema.validate({
+          name: 'Scopd DLP',
+          connection: 'syslog',
+          groups_filter: 'scopd',
+          allowed_ips: '192.168.1.0/33',
+        })
+      ).toThrow(/allowed_ips must be a valid IP address or CIDR network/);
+    });
+
+    it('should reject malformed IP', () => {
+      const postConfig = router.routes['POST /api/integrations/device'].config;
+      const bodySchema = postConfig.validate.body;
+
+      expect(() =>
+        bodySchema.validate({
+          name: 'Scopd DLP',
+          connection: 'syslog',
+          groups_filter: 'scopd',
+          allowed_ips: 'not-an-ip',
+        })
+      ).toThrow(/allowed_ips must be a valid IP address or CIDR network/);
+    });
+
+    it('should accept valid IP address', () => {
+      const postConfig = router.routes['POST /api/integrations/device'].config;
+      const bodySchema = postConfig.validate.body;
+
+      expect(() =>
+        bodySchema.validate({
+          name: 'Scopd DLP',
+          connection: 'syslog',
+          groups_filter: 'scopd',
+          allowed_ips: '192.168.2.1',
+        })
+      ).not.toThrow();
+    });
+
+    it('should accept valid CIDR network', () => {
+      const postConfig = router.routes['POST /api/integrations/device'].config;
+      const bodySchema = postConfig.validate.body;
+
+      expect(() =>
+        bodySchema.validate({
+          name: 'Scopd DLP',
+          connection: 'syslog',
+          groups_filter: 'scopd',
+          allowed_ips: '192.168.2.0/24',
+        })
+      ).not.toThrow();
+    });
+
+    it('should accept omitted allowed_ips', () => {
+      const postConfig = router.routes['POST /api/integrations/device'].config;
+      const bodySchema = postConfig.validate.body;
+
+      expect(() =>
+        bodySchema.validate({
+          name: 'Scopd DLP',
+          connection: 'syslog',
+          groups_filter: 'scopd',
+        })
+      ).not.toThrow();
+    });
   });
 
   // ---- POST /api/integrations/device ---------------------------------------
