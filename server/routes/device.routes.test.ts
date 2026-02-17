@@ -219,6 +219,36 @@ describe('Device API routes', () => {
     });
   });
 
+  // ---- POST /api/integrations/device — schema validation --------------------
+
+  describe('POST /api/integrations/device — schema validation', () => {
+    it('should reject connection values other than "syslog" (test case 5)', () => {
+      const postConfig = router.routes['POST /api/integrations/device'].config;
+      const bodySchema = postConfig.validate.body;
+
+      expect(() =>
+        bodySchema.validate({
+          name: 'Scopd DLP',
+          connection: 'http',
+          groups_filter: 'scopd',
+        })
+      ).toThrow();
+    });
+
+    it('should accept connection="syslog"', () => {
+      const postConfig = router.routes['POST /api/integrations/device'].config;
+      const bodySchema = postConfig.validate.body;
+
+      expect(() =>
+        bodySchema.validate({
+          name: 'Scopd DLP',
+          connection: 'syslog',
+          groups_filter: 'scopd',
+        })
+      ).not.toThrow();
+    });
+  });
+
   // ---- POST /api/integrations/device ---------------------------------------
 
   describe('POST /api/integrations/device', () => {

@@ -110,7 +110,10 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
       validate: {
         body: schema.object({
           name: schema.string(),
-          connection: schema.string(),
+          connection: schema.oneOf([schema.literal('syslog')], {
+            defaultValue: 'syslog',
+            meta: { description: 'Only "syslog" is supported' },
+          }),
           groups_filter: schema.string(),
           allowed_ips: schema.maybe(schema.string()),
           rules_file: schema.maybe(schema.string()),

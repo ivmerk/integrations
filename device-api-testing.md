@@ -47,6 +47,24 @@ curl "http://localhost:5601/api/integrations/device?uid=<UID_FROM_POST>" \
 
 Expected: single device object with all fields + `created_at`.
 
+### Delete a device by UID (DELETE)
+
+```bash
+curl -X DELETE "http://localhost:5601/api/integrations/device?uid=<UID_FROM_POST>" \
+  -H "osd-xsrf: true"
+```
+
+Expected: `{"message":"Device with uid=<UID> deleted"}` with status 200.
+
+### Verify deletion (GET after DELETE)
+
+```bash
+curl "http://localhost:5601/api/integrations/device?uid=<UID_FROM_POST>" \
+  -H "osd-xsrf: true"
+```
+
+Expected: 404 — "Device with uid=... not found".
+
 ## 3. Test from Dev Tools console
 
 Navigate to Dev Tools (`localhost:5601/app/dev_tools#/console`) and run:
@@ -56,6 +74,8 @@ POST /api/integrations/device
 {"name":"Test Device","connection":"syslog","groups_filter":"test"}
 
 GET /api/integrations/device
+
+DELETE /api/integrations/device?uid=<UID_FROM_POST>
 ```
 
 ## 4. Edge cases to verify
@@ -66,6 +86,9 @@ GET /api/integrations/device
 | POST with only required fields (no optional) | 200 — `allowed_ips`, `rules_file`, `decoders_file` stored as `null` |
 | GET with non-existent UID | 404 — "Device with uid=... not found" |
 | GET all when no devices created yet | 200 — empty array `[]` |
+| DELETE with valid UID | 200 — `{"message":"Device with uid=... deleted"}` |
+| DELETE with non-existent UID | 404 — "Device with uid=... not found" |
+| GET after DELETE with same UID | 404 — device no longer exists |
 
 ## Note
 
