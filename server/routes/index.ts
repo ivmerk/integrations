@@ -162,6 +162,56 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
     }
   );
 
+  // DELETE /api/integrations/device?uid={uid} — Delete a device by uid
+  router.delete(
+    {
+      path: '/api/integrations/device',
+      validate: {
+        query: schema.object({
+          uid: schema.string(),
+        }),
+      },
+    },
+    async (context, request, response) => {
+      try {
+        const client = context.core.opensearch.client.asCurrentUser;
+        const { uid } = request.query;
+
+        await client.delete({
+          index: DEVICES_INDEX,
+          id: uid,
+          refresh: 'wait_for',
+        });
+
+        deps.logger.info(`Device deleted with uid=${uid}`);
+
+        return response.ok({
+          body: { message: `Device with uid=${uid} deleted` },
+        });
+      } catch (error) {
+        const statusCode = (error as any)?.statusCode;
+
+        if (statusCode === 404) {
+          return response.customError({
+            statusCode: 404,
+            body: { message: `Device with uid=${request.query.uid} not found` },
+          });
+        }
+
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        deps.logger.error(`Failed to delete device: ${errorMessage}`, { error });
+
+        return response.customError({
+          statusCode: 500,
+          body: {
+            message: `Failed to delete device: ${errorMessage}`,
+            attributes: { details: error instanceof Error ? error.toString() : String(error) },
+          },
+        });
+      }
+    }
+  );
+
   // GET /api/integrations/device — Get one device by uid, or all devices
   router.get(
     {
