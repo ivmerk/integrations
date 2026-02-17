@@ -1,6 +1,8 @@
 import { IRouter } from '../../../../src/core/server';
 import { schema } from '@osd/config-schema';
 import { Logger } from '../../../../src/core/server';
+import { access } from 'fs/promises';
+import { join } from 'path';
 import {CONFIGURATION_FILES_PATH, DEVICES_INDEX} from "../../common/constants";
 import {readFileContent} from "../../common/file_utils";
 import {generateUlid} from "../utils/ulid";
@@ -148,6 +150,32 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
     },
     async (context, request, response) => {
       try {
+        const { rules_file, decoders_file } = request.body;
+
+        // Validate that rules_file exists on disk
+        if (rules_file) {
+          const rulesPath = join(process.cwd(), CONFIGURATION_FILES_PATH, rules_file);
+          try {
+            await access(rulesPath);
+          } catch {
+            return response.badRequest({
+              body: { message: `rules_file "${rules_file}" does not exist on the server` },
+            });
+          }
+        }
+
+        // Validate that decoders_file exists on disk
+        if (decoders_file) {
+          const decodersPath = join(process.cwd(), CONFIGURATION_FILES_PATH, decoders_file);
+          try {
+            await access(decodersPath);
+          } catch {
+            return response.badRequest({
+              body: { message: `decoders_file "${decoders_file}" does not exist on the server` },
+            });
+          }
+        }
+
         const client = context.core.opensearch.client.asCurrentUser;
         const uid = generateUlid();
         const now = new Date().toISOString();

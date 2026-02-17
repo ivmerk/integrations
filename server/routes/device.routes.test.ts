@@ -1,6 +1,12 @@
 import { defineRoutes } from './index';
 import { DEVICES_INDEX } from '../../common/constants';
 
+// Mock fs/promises.access
+const mockAccess = jest.fn();
+jest.mock('fs/promises', () => ({
+  access: (...args: any[]) => mockAccess(...args),
+}));
+
 // --- Mock helpers -----------------------------------------------------------
 
 function createMockRouter() {
@@ -46,6 +52,7 @@ function createMockContext(client: ReturnType<typeof createMockOpenSearchClient>
 function createMockResponse() {
   return {
     ok: jest.fn((opts) => ({ status: 200, ...opts })),
+    badRequest: jest.fn((opts) => ({ status: 400, ...opts })),
     customError: jest.fn((opts) => ({ status: opts.statusCode, ...opts })),
   };
 }
@@ -67,6 +74,7 @@ describe('Device API routes', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAccess.mockResolvedValue(undefined); // files exist by default
     router = createMockRouter();
     client = createMockOpenSearchClient();
     context = createMockContext(client);
@@ -398,6 +406,63 @@ describe('Device API routes', () => {
       expect(res.customError).toHaveBeenCalledWith(
         expect.objectContaining({ statusCode: 500 })
       );
+    });
+
+    // Test case 8: POST with non-existent rules_file
+    it('should return 400 when rules_file does not exist (test case 8)', async () => {
+      mockAccess.mockRejectedValue(new Error('ENOENT'));
+
+      const body = {
+        name: 'Scopd DLP',
+        connection: 'syslog',
+        groups_filter: 'scopd',
+        rules_file: 'missing_rules.xml',
+      };
+
+      await handler(context, { body }, res);
+
+      expect(res.badRequest).toHaveBeenCalledWith({
+        body: { message: 'rules_file "missing_rules.xml" does not exist on the server' },
+      });
+      expect(client.index).not.toHaveBeenCalled();
+    });
+
+    // Test case 9: POST with non-existent decoders_file
+    it('should return 400 when decoders_file does not exist (test case 9)', async () => {
+      // rules_file check passes, decoders_file check fails
+      mockAccess
+        .mockResolvedValueOnce(undefined)    // rules_file OK
+        .mockRejectedValueOnce(new Error('ENOENT')); // decoders_file missing
+
+      const body = {
+        name: 'Scopd DLP',
+        connection: 'syslog',
+        groups_filter: 'scopd',
+        rules_file: 'scopd_rules.xml',
+        decoders_file: 'missing_decoders.xml',
+      };
+
+      await handler(context, { body }, res);
+
+      expect(res.badRequest).toHaveBeenCalledWith({
+        body: { message: 'decoders_file "missing_decoders.xml" does not exist on the server' },
+      });
+      expect(client.index).not.toHaveBeenCalled();
+    });
+
+    it('should not check files when rules_file and decoders_file are omitted', async () => {
+      client.index.mockResolvedValue({ body: { result: 'created' } });
+
+      const body = {
+        name: 'Scopd DLP',
+        connection: 'syslog',
+        groups_filter: 'scopd',
+      };
+
+      await handler(context, { body }, res);
+
+      expect(mockAccess).not.toHaveBeenCalled();
+      expect(res.ok).toHaveBeenCalled();
     });
   });
 
