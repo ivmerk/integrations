@@ -52,6 +52,7 @@ function createMockContext(client: ReturnType<typeof createMockOpenSearchClient>
 function createMockResponse() {
   return {
     ok: jest.fn((opts) => ({ status: 200, ...opts })),
+    noContent: jest.fn(() => ({ status: 204 })),
     badRequest: jest.fn((opts) => ({ status: 400, ...opts })),
     customError: jest.fn((opts) => ({ status: opts.statusCode, ...opts })),
   };
@@ -117,7 +118,7 @@ describe('Device API routes', () => {
       handler = router.routes['DELETE /api/integrations/device'].handler;
     });
 
-    it('should delete an existing device and return 200', async () => {
+    it('should delete an existing device and return 204 No Content', async () => {
       const uid = '01HZWK4A3H9Q2T8K8YV2Z9M1QK';
       client.delete.mockResolvedValue({ body: { result: 'deleted' } });
 
@@ -128,9 +129,7 @@ describe('Device API routes', () => {
         id: uid,
         refresh: 'wait_for',
       });
-      expect(res.ok).toHaveBeenCalledWith({
-        body: { message: `Device with uid=${uid} deleted` },
-      });
+      expect(res.noContent).toHaveBeenCalled();
     });
 
     it('should return 404 when deleting a non-existent device', async () => {
@@ -515,9 +514,7 @@ describe('Device API routes', () => {
       client.delete.mockResolvedValue({ body: { result: 'deleted' } });
       const delRes = createMockResponse();
       await deleteHandler(context, { query: { uid } }, delRes);
-      expect(delRes.ok).toHaveBeenCalledWith({
-        body: { message: `Device with uid=${uid} deleted` },
-      });
+      expect(delRes.noContent).toHaveBeenCalled();
 
       // GET again — should be 404
       const notFoundError: any = new Error('Not Found');

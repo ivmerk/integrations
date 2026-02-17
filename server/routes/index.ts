@@ -241,9 +241,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
 
         deps.logger.info(`Device deleted with uid=${uid}`);
 
-        return response.ok({
-          body: { message: `Device with uid=${uid} deleted` },
-        });
+        return response.noContent();
       } catch (error) {
         const statusCode = (error as any)?.statusCode;
 
