@@ -25,9 +25,6 @@ export function removeOssecRemoteBlock(confFileContent: string, connectionType: 
 }
 
 export function injectOssecBlock(confFileContent: string, blockContent: string): string {
-  if (confFileContent.replace(/\s/g, '').includes(blockContent.replace(/\s/g, ''))) {
-    return confFileContent;
-  }
   const tagStart = confFileContent.indexOf('<ossec_config>');
   if (tagStart === -1) {
     throw new Error('Could not find <ossec_config> tag in ossec.conf');
@@ -65,7 +62,19 @@ export function createWazuhApiClient(opts: WazuhApiClientOptions) {
       const text = await response.text();
       throw new Error(`Wazuh API [${wazuhMethod} ${path}]: ${response.status} ${text}`);
     }
-    return response.json();
+    const result = await response.json();
+    // /api/request always returns HTTP 200, even when the Wazuh Manager rejects
+    // the call with 4xx/5xx. Detect hard failures via the response body:
+    // - result.error is truthy (non-zero Wazuh error code)
+    // - AND total_affected_items === 0 (nothing was written/applied at all)
+    // This avoids false positives where the operation succeeds on disk but Wazuh
+    // returns a validation warning with error:1 (e.g. rule syntax warnings).
+    if (result?.error && result?.data?.total_affected_items === 0) {
+      throw new Error(
+        `Wazuh API [${wazuhMethod} ${path}] rejected: ${result?.data?.failed_items?.[0]?.error?.message || result?.message || result?.detail || JSON.stringify(result)}`
+      );
+    }
+    return result;
   }
 
   return {
