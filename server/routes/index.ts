@@ -3,9 +3,10 @@ import { schema } from '@osd/config-schema';
 import { Logger } from '../../../../src/core/server';
 import { access } from 'fs/promises';
 import { join } from 'path';
-import {CONFIGURATION_FILES_PATH, DEVICES_INDEX} from "../../common/constants";
-import {readFileContent} from "../../common/file_utils";
-import {generateUlid} from "../utils/ulid";
+import { CONFIGURATION_FILES_PATH, DEVICES_INDEX, SCOPD_OSSEC_CONF_FILE_NAME } from "../../common/constants";
+import { readFileContent } from "../../common/file_utils";
+import { generateUlid } from "../utils/ulid";
+import { createWazuhApiClient, applyAllowedIps, injectOssecBlock } from "../utils/wazuh-api";
 
 interface RouteDependencies {
   logger: Logger;
@@ -150,7 +151,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
     },
     async (context, request, response) => {
       try {
-        const { rules_file, decoders_file } = request.body;
+        const { rules_file, decoders_file, allowed_ips } = request.body;
 
         // Validate that rules_file exists on disk
         if (rules_file) {
@@ -176,6 +177,60 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           }
         }
 
+        // Build Wazuh API client.
+        // Use 127.0.0.1 explicitly — 'localhost' may resolve to ::1 (IPv6) on some systems
+        // while the OSD server binds to 0.0.0.0 (IPv4 only), causing ECONNREFUSED.
+        const host = request.headers.host as string;
+        const port = host.includes(':') ? host.split(':')[1] : '5601';
+        const rawCookie = request.headers.cookie;
+        const wazuhHeaders: Record<string, string> = {};
+        if (rawCookie) {
+          wazuhHeaders.cookie = Array.isArray(rawCookie) ? rawCookie.join('; ') : rawCookie;
+        }
+        const wazuhApi = createWazuhApiClient({ baseUrl: `http://127.0.0.1:${port}`, headers: wazuhHeaders });
+
+        // Login to Wazuh Manager to ensure an active session
+        deps.logger.info('Device create: logging in to Wazuh Manager');
+        await wazuhApi.login();
+        deps.logger.info('Device create: login OK');
+
+        // Upload rules file to Wazuh Manager
+        if (rules_file) {
+          deps.logger.info(`Device create: uploading rules file ${rules_file}`);
+          const rulesContent = await readFileContent(`${CONFIGURATION_FILES_PATH}${rules_file}`);
+          await wazuhApi.uploadRulesFile(rulesContent);
+          deps.logger.info(`Device create: rules file uploaded`);
+        }
+
+        // Upload decoders file to Wazuh Manager
+        if (decoders_file) {
+          deps.logger.info(`Device create: uploading decoders file ${decoders_file}`);
+          const decodersContent = await readFileContent(`${CONFIGURATION_FILES_PATH}${decoders_file}`);
+          await wazuhApi.uploadDecoderFile(decodersContent);
+          deps.logger.info(`Device create: decoders file uploaded`);
+        }
+
+        // Read ossec.conf.xml template from disk
+        deps.logger.info('Device create: reading ossec.conf.xml');
+        let ossecBlock = await readFileContent(`${CONFIGURATION_FILES_PATH}${SCOPD_OSSEC_CONF_FILE_NAME}`);
+
+        // Inject allowed_ips into the <allowed-ips> tag if provided; otherwise use template default
+        if (allowed_ips) {
+          ossecBlock = applyAllowedIps(ossecBlock, allowed_ips);
+        }
+
+        // Get current Wazuh Manager configuration, inject ossec block, and re-upload
+        deps.logger.info('Device create: getting Wazuh Manager config');
+        const confFileContent = await wazuhApi.getManagerConfig();
+        deps.logger.info('Device create: injecting ossec block and uploading config');
+        const updatedConf = injectOssecBlock(confFileContent, ossecBlock);
+        await wazuhApi.uploadManagerConfig(updatedConf);
+        deps.logger.info('Device create: Wazuh Manager config updated');
+
+        // Create device document in OpenSearch before restarting Wazuh Manager.
+        // Restart is fired asynchronously so it does not block the response —
+        // the Wazuh Manager restart can disrupt the OSD connection and prevent
+        // the response from being sent if awaited here.
         const client = context.core.opensearch.client.asCurrentUser;
         const uid = generateUlid();
         const now = new Date().toISOString();
@@ -198,19 +253,29 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           refresh: 'wait_for',
         });
 
-        deps.logger.info(`Device created with uid=${uid}`);
+        deps.logger.info(`Device create: indexed uid=${uid}, scheduling Wazuh Manager restart`);
+
+        // Defer restart until after the response is sent — restartManager triggers a Wazuh Manager
+        // process restart that can disrupt the OSD HTTP connection if initiated too early.
+        setImmediate(() => {
+          wazuhApi.restartManager().catch((err: Error) => {
+            deps.logger.error(`Device create: Wazuh Manager restart failed: ${err.message}`, { err });
+          });
+        });
 
         return response.ok({
           body: { uid },
         });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        deps.logger.error(`Failed to create device: ${errorMessage}`, { error });
+        const cause = (error as any)?.cause;
+        const causeMessage = cause instanceof Error ? ` (cause: ${cause.message})` : '';
+        deps.logger.error(`Failed to create device: ${errorMessage}${causeMessage}`, { error });
 
         return response.customError({
           statusCode: 500,
           body: {
-            message: `Failed to create device: ${errorMessage}`,
+            message: `Failed to create device: ${errorMessage}${causeMessage}`,
             attributes: { details: error instanceof Error ? error.toString() : String(error) },
           },
         });

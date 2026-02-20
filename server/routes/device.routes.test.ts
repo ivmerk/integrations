@@ -1,11 +1,22 @@
 import { defineRoutes } from './index';
 import { DEVICES_INDEX } from '../../common/constants';
+import { readFileContent } from '../../common/file_utils';
 
 // Mock fs/promises.access
 const mockAccess = jest.fn();
 jest.mock('fs/promises', () => ({
   access: (...args: any[]) => mockAccess(...args),
 }));
+
+// Mock readFileContent
+jest.mock('../../common/file_utils', () => ({
+  readFileContent: jest.fn(),
+}));
+const mockReadFileContent = readFileContent as jest.Mock;
+
+// Mock global fetch for Wazuh API calls
+const mockFetch = jest.fn();
+(global as any).fetch = mockFetch;
 
 // --- Mock helpers -----------------------------------------------------------
 
@@ -76,6 +87,29 @@ describe('Device API routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAccess.mockResolvedValue(undefined); // files exist by default
+    // Login returns Set-Cookie headers; other calls return XML or empty JSON
+    const wazuhCookies = [
+      'wz-token=test-token;Path=/;HttpOnly',
+      'wz-user=guest;Path=/;HttpOnly',
+      'wz-api=default;Path=/;HttpOnly',
+    ];
+    mockFetch.mockImplementation((url: string) => {
+      if (typeof url === 'string' && url.includes('/api/login')) {
+        return Promise.resolve({
+          ok: true,
+          headers: { getSetCookie: () => wazuhCookies },
+          text: () => Promise.resolve(JSON.stringify({ token: 'test-token' })),
+          json: () => Promise.resolve({ token: 'test-token' }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        headers: { getSetCookie: () => [] },
+        text: () => Promise.resolve('<ossec_config></ossec_config>'),
+        json: () => Promise.resolve({}),
+      });
+    });
+    mockReadFileContent.mockResolvedValue('<remote><allowed-ips>0.0.0.0/0</allowed-ips></remote>');
     router = createMockRouter();
     client = createMockOpenSearchClient();
     context = createMockContext(client);
@@ -361,7 +395,7 @@ describe('Device API routes', () => {
         decoders_file: 'scopd_decoders.xml',
       };
 
-      await handler(context, { body }, res);
+      await handler(context, { body, headers: { host: 'localhost:5601' } }, res);
 
       expect(client.index).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -383,7 +417,7 @@ describe('Device API routes', () => {
         groups_filter: 'scopd',
       };
 
-      await handler(context, { body }, res);
+      await handler(context, { body, headers: { host: 'localhost:5601' } }, res);
 
       const indexCall = client.index.mock.calls[0][0];
       expect(indexCall.body.allowed_ips).toBeNull();
@@ -400,7 +434,7 @@ describe('Device API routes', () => {
         groups_filter: 'scopd',
       };
 
-      await handler(context, { body }, res);
+      await handler(context, { body, headers: { host: 'localhost:5601' } }, res);
 
       expect(res.customError).toHaveBeenCalledWith(
         expect.objectContaining({ statusCode: 500 })
@@ -418,7 +452,7 @@ describe('Device API routes', () => {
         rules_file: 'missing_rules.xml',
       };
 
-      await handler(context, { body }, res);
+      await handler(context, { body, headers: { host: 'localhost:5601' } }, res);
 
       expect(res.badRequest).toHaveBeenCalledWith({
         body: { message: 'rules_file "missing_rules.xml" does not exist on the server' },
@@ -441,7 +475,7 @@ describe('Device API routes', () => {
         decoders_file: 'missing_decoders.xml',
       };
 
-      await handler(context, { body }, res);
+      await handler(context, { body, headers: { host: 'localhost:5601' } }, res);
 
       expect(res.badRequest).toHaveBeenCalledWith({
         body: { message: 'decoders_file "missing_decoders.xml" does not exist on the server' },
@@ -458,7 +492,7 @@ describe('Device API routes', () => {
         groups_filter: 'scopd',
       };
 
-      await handler(context, { body }, res);
+      await handler(context, { body, headers: { host: 'localhost:5601' } }, res);
 
       expect(mockAccess).not.toHaveBeenCalled();
       expect(res.ok).toHaveBeenCalled();
@@ -487,6 +521,7 @@ describe('Device API routes', () => {
             rules_file: 'scopd_rules.xml',
             decoders_file: 'scopd_decoders.xml',
           },
+          headers: { host: 'localhost:5601' },
         },
         postRes
       );
