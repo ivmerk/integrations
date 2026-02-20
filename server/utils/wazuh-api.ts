@@ -12,6 +12,18 @@ export function applyAllowedIps(ossecTemplate: string, allowedIps: string): stri
   );
 }
 
+export function removeOssecRemoteBlock(confFileContent: string, connectionType: string): string {
+  return confFileContent.replace(
+    /(\n?[ \t]*<remote>[\s\S]*?<\/remote>)/g,
+    (match) => {
+      if (match.includes(`<connection>${connectionType}</connection>`)) {
+        return '';
+      }
+      return match;
+    }
+  );
+}
+
 export function injectOssecBlock(confFileContent: string, blockContent: string): string {
   if (confFileContent.replace(/\s/g, '').includes(blockContent.replace(/\s/g, ''))) {
     return confFileContent;
@@ -95,6 +107,14 @@ export function createWazuhApiClient(opts: WazuhApiClientOptions) {
         origin: 'raw',
         params: { overwrite: true, relative_dirname: 'etc/decoders' },
       });
+    },
+
+    async deleteRulesFile(filename: string): Promise<void> {
+      await callApiRequest('DELETE', `/rules/files/${filename}`, {});
+    },
+
+    async deleteDecoderFile(filename: string): Promise<void> {
+      await callApiRequest('DELETE', `/decoders/files/${filename}`, {});
     },
 
     async getManagerConfig(): Promise<string> {

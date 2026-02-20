@@ -6,7 +6,7 @@ import { join } from 'path';
 import { CONFIGURATION_FILES_PATH, DEVICES_INDEX, SCOPD_OSSEC_CONF_FILE_NAME } from "../../common/constants";
 import { readFileContent } from "../../common/file_utils";
 import { generateUlid } from "../utils/ulid";
-import { createWazuhApiClient, applyAllowedIps, injectOssecBlock } from "../utils/wazuh-api";
+import { createWazuhApiClient, applyAllowedIps, injectOssecBlock, removeOssecRemoteBlock } from "../utils/wazuh-api";
 
 interface RouteDependencies {
   logger: Logger;
@@ -298,25 +298,76 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
         const client = context.core.opensearch.client.asCurrentUser;
         const { uid } = request.query;
 
+        // 1. Fetch device document to learn which files to remove
+        deps.logger.info(`Device delete: fetching device uid=${uid}`);
+        let device: any;
+        try {
+          const result = await client.get({ index: DEVICES_INDEX, id: uid });
+          device = result.body._source;
+        } catch (error) {
+          if ((error as any)?.statusCode === 404) {
+            return response.customError({
+              statusCode: 404,
+              body: { message: `Device with uid=${uid} not found` },
+            });
+          }
+          throw error;
+        }
+
+        // 2. Build Wazuh API client and login
+        const host = request.headers.host as string;
+        const port = host.includes(':') ? host.split(':')[1] : '5601';
+        const rawCookie = request.headers.cookie;
+        const wazuhHeaders: Record<string, string> = {};
+        if (rawCookie) {
+          wazuhHeaders.cookie = Array.isArray(rawCookie) ? rawCookie.join('; ') : rawCookie;
+        }
+        const wazuhApi = createWazuhApiClient({ baseUrl: `http://127.0.0.1:${port}`, headers: wazuhHeaders });
+
+        deps.logger.info('Device delete: logging in to Wazuh Manager');
+        await wazuhApi.login();
+        deps.logger.info('Device delete: login OK');
+
+        // 3. Delete rules file from Wazuh Manager
+        if (device.rules_file) {
+          deps.logger.info(`Device delete: deleting rules file ${device.rules_file}`);
+          await wazuhApi.deleteRulesFile(device.rules_file);
+          deps.logger.info('Device delete: rules file deleted');
+        }
+
+        // 4. Delete decoders file from Wazuh Manager
+        if (device.decoders_file) {
+          deps.logger.info(`Device delete: deleting decoders file ${device.decoders_file}`);
+          await wazuhApi.deleteDecoderFile(device.decoders_file);
+          deps.logger.info('Device delete: decoders file deleted');
+        }
+
+        // 5. Remove the matching <remote> block from ossec.conf and re-upload
+        deps.logger.info('Device delete: getting Wazuh Manager config');
+        const confFileContent = await wazuhApi.getManagerConfig();
+        deps.logger.info('Device delete: removing ossec remote block and uploading config');
+        const updatedConf = removeOssecRemoteBlock(confFileContent, device.connection);
+        await wazuhApi.uploadManagerConfig(updatedConf);
+        deps.logger.info('Device delete: Wazuh Manager config updated');
+
+        // 6. Delete document from OpenSearch
         await client.delete({
           index: DEVICES_INDEX,
           id: uid,
           refresh: 'wait_for',
         });
+        deps.logger.info(`Device delete: document removed uid=${uid}, scheduling restart`);
 
-        deps.logger.info(`Device deleted with uid=${uid}`);
-
-        return response.noContent();
-      } catch (error) {
-        const statusCode = (error as any)?.statusCode;
-
-        if (statusCode === 404) {
-          return response.customError({
-            statusCode: 404,
-            body: { message: `Device with uid=${request.query.uid} not found` },
+        // 7. Defer restart until after the response is sent
+        setImmediate(() => {
+          wazuhApi.restartManager().catch((err: Error) => {
+            deps.logger.error(`Device delete: Wazuh Manager restart failed: ${err.message}`, { err });
           });
-        }
+        });
 
+        // 8. Return 200
+        return response.ok({ body: { message: 'Device deleted successfully' } });
+      } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         deps.logger.error(`Failed to delete device: ${errorMessage}`, { error });
 

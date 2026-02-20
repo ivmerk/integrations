@@ -147,32 +147,77 @@ describe('Device API routes', () => {
 
   describe('DELETE /api/integrations/device', () => {
     let handler: Function;
+    const deviceDoc = {
+      uid: '01HZWK4A3H9Q2T8K8YV2Z9M1QK',
+      name: 'Scopd DLP',
+      connection: 'syslog',
+      groups_filter: 'scopd',
+      allowed_ips: '192.168.2.0/24',
+      rules_file: 'scopd_rules.xml',
+      decoders_file: 'scopd_decoders.xml',
+      created_at: '2026-02-20T11:10:33.215Z',
+    };
 
     beforeEach(() => {
       handler = router.routes['DELETE /api/integrations/device'].handler;
     });
 
-    it('should delete an existing device and return 204 No Content', async () => {
-      const uid = '01HZWK4A3H9Q2T8K8YV2Z9M1QK';
+    it('should delete an existing device and return 200 OK', async () => {
+      const uid = deviceDoc.uid;
+      client.get.mockResolvedValue({ body: { _source: deviceDoc } });
       client.delete.mockResolvedValue({ body: { result: 'deleted' } });
 
-      await handler(context, { query: { uid } }, res);
+      await handler(context, { query: { uid }, headers: { host: 'localhost:5601' } }, res);
 
+      expect(client.get).toHaveBeenCalledWith({ index: DEVICES_INDEX, id: uid });
       expect(client.delete).toHaveBeenCalledWith({
         index: DEVICES_INDEX,
         id: uid,
         refresh: 'wait_for',
       });
-      expect(res.noContent).toHaveBeenCalled();
+      expect(res.ok).toHaveBeenCalledWith({ body: { message: 'Device deleted successfully' } });
     });
 
-    it('should return 404 when deleting a non-existent device', async () => {
+    it('should call deleteRulesFile and deleteDecoderFile via Wazuh API', async () => {
+      const uid = deviceDoc.uid;
+      client.get.mockResolvedValue({ body: { _source: deviceDoc } });
+      client.delete.mockResolvedValue({ body: { result: 'deleted' } });
+
+      await handler(context, { query: { uid }, headers: { host: 'localhost:5601' } }, res);
+
+      // Expect DELETE calls for rules and decoders in the fetch mock
+      const fetchCalls: string[] = mockFetch.mock.calls.map((c: any[]) => {
+        const bodyArg = c[1]?.body ? JSON.parse(c[1].body) : {};
+        return `${bodyArg.method ?? ''} ${bodyArg.path ?? ''}`;
+      });
+      expect(fetchCalls).toContain(`DELETE /rules/files/${deviceDoc.rules_file}`);
+      expect(fetchCalls).toContain(`DELETE /decoders/files/${deviceDoc.decoders_file}`);
+    });
+
+    it('should skip file deletion when rules_file and decoders_file are null', async () => {
+      const uid = '01HZWK4A3H9Q2T8K8YV2Z9M1QK';
+      const minimalDoc = { uid, name: 'Minimal', connection: 'syslog', groups_filter: 'scopd', rules_file: null, decoders_file: null };
+      client.get.mockResolvedValue({ body: { _source: minimalDoc } });
+      client.delete.mockResolvedValue({ body: { result: 'deleted' } });
+
+      await handler(context, { query: { uid }, headers: { host: 'localhost:5601' } }, res);
+
+      const fetchCalls: string[] = mockFetch.mock.calls.map((c: any[]) => {
+        const bodyArg = c[1]?.body ? JSON.parse(c[1].body) : {};
+        return `${bodyArg.method ?? ''} ${bodyArg.path ?? ''}`;
+      });
+      expect(fetchCalls).not.toContain(expect.stringContaining('DELETE /rules/files'));
+      expect(fetchCalls).not.toContain(expect.stringContaining('DELETE /decoders/files'));
+      expect(res.ok).toHaveBeenCalledWith({ body: { message: 'Device deleted successfully' } });
+    });
+
+    it('should return 404 when device is not found in OpenSearch', async () => {
       const uid = 'NON_EXISTENT_UID';
       const notFoundError: any = new Error('Not Found');
       notFoundError.statusCode = 404;
-      client.delete.mockRejectedValue(notFoundError);
+      client.get.mockRejectedValue(notFoundError);
 
-      await handler(context, { query: { uid } }, res);
+      await handler(context, { query: { uid }, headers: { host: 'localhost:5601' } }, res);
 
       expect(res.customError).toHaveBeenCalledWith({
         statusCode: 404,
@@ -182,9 +227,9 @@ describe('Device API routes', () => {
 
     it('should return 500 on unexpected errors', async () => {
       const uid = '01HZWK4A3H9Q2T8K8YV2Z9M1QK';
-      client.delete.mockRejectedValue(new Error('Connection refused'));
+      client.get.mockRejectedValue(new Error('Connection refused'));
 
-      await handler(context, { query: { uid } }, res);
+      await handler(context, { query: { uid }, headers: { host: 'localhost:5601' } }, res);
 
       expect(res.customError).toHaveBeenCalledWith(
         expect.objectContaining({ statusCode: 500 })
@@ -546,10 +591,11 @@ describe('Device API routes', () => {
       expect(getRes1.ok).toHaveBeenCalledWith({ body: storedDoc });
 
       // DELETE
+      client.get.mockResolvedValue({ body: { _source: { ...storedDoc, rules_file: 'scopd_rules.xml', decoders_file: 'scopd_decoders.xml', connection: 'syslog' } } });
       client.delete.mockResolvedValue({ body: { result: 'deleted' } });
       const delRes = createMockResponse();
-      await deleteHandler(context, { query: { uid } }, delRes);
-      expect(delRes.noContent).toHaveBeenCalled();
+      await deleteHandler(context, { query: { uid }, headers: { host: 'localhost:5601' } }, delRes);
+      expect(delRes.ok).toHaveBeenCalledWith({ body: { message: 'Device deleted successfully' } });
 
       // GET again — should be 404
       const notFoundError: any = new Error('Not Found');
