@@ -18,7 +18,7 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
         });
       },
       category: {
-        id: 'integrations',
+        id: PLUGIN_ID,
         order: 50,
         get label() {
           return i18n.translate('core.ui.integrationsNavList.label', {
@@ -35,12 +35,54 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
         // Set custom breadcrumbs
         coreStart.chrome.setBreadcrumbs([
           {
+            text: PLUGIN_ID.charAt(0).toUpperCase() + PLUGIN_ID.slice(1),
+          },
+          {
             text: PLUGIN_NAME,
           },
         ]);
         // Load application bundle
         const { renderApp } = await import('./application');
         // Render the application
+        return renderApp(coreStart, depsStart as AppPluginStartDependencies, params);
+      },
+    });
+
+    // Register a second application - Dashboard
+    core.application.register({
+      id: 'integrations-dashboard',
+      get title() {
+        return i18n.translate('core.ui.integrationsNavListDashboardPlugin.label', {
+          defaultMessage: 'Dashboard',
+        });
+      },
+      category: {
+        id: 'integrations',
+        order: 50,
+        get label() {
+          return i18n.translate('core.ui.integrationsNavList.label', {
+            defaultMessage: 'Integrations',
+          });
+        },
+        euiIconType: 'visLine',
+      },
+      order: -999, // Higher order than Settings (-1000)
+      async mount(params: AppMountParameters) {
+        // Get start services as specified in opensearch_dashboards.json
+        const [coreStart, depsStart] = await core.getStartServices();
+
+        // Set custom breadcrumbs
+        coreStart.chrome.setBreadcrumbs([
+          {
+            text: 'Integrations',
+          },
+          {
+            text: 'Dashboard',
+          },
+        ]);
+        // Load dashboard application bundle
+        const { renderApp } = await import('./routing_switching_application');
+        // Render the dashboard application
         return renderApp(coreStart, depsStart as AppPluginStartDependencies, params);
       },
     });
