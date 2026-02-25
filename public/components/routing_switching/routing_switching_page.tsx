@@ -156,11 +156,6 @@ export const RoutingSwitchingPage = ({ basename, notifications, http }: RoutingS
                               {isEnabled ? (
                                 <>
                                   <EuiFlexItem grow={false}>
-                                    <EuiHealth color={connectedCount > 0 ? 'success' : 'subdued'}>
-                                      Connected: {connectedCount}
-                                    </EuiHealth>
-                                  </EuiFlexItem>
-                                  <EuiFlexItem grow={false}>
                                     <EuiButton
                                       size="s"
                                       className="connect-btn"
@@ -168,6 +163,11 @@ export const RoutingSwitchingPage = ({ basename, notifications, http }: RoutingS
                                     >
                                       Connect
                                     </EuiButton>
+                                  </EuiFlexItem>
+                                  <EuiFlexItem grow={false}>
+                                    <EuiHealth color={connectedCount > 0 ? 'success' : 'subdued'}>
+                                      Connected: {connectedCount}
+                                    </EuiHealth>
                                   </EuiFlexItem>
                                 </>
                               ) : (
