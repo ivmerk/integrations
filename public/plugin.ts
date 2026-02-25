@@ -50,10 +50,10 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
 
     // Register a second application - Dashboard
     core.application.register({
-      id: 'integrations-dashboard',
+      id: 'network-infrastructure-settings',
       get title() {
-        return i18n.translate('core.ui.integrationsNavListDashboardPlugin.label', {
-          defaultMessage: 'Dashboard',
+        return i18n.translate('core.ui.integrationsNavListNetworkInfrastructureSettings.label', {
+          defaultMessage: 'Network infrastructure (Routing/switching) settings',
         });
       },
       category: {
@@ -77,7 +77,7 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
             text: 'Integrations',
           },
           {
-            text: 'Dashboard',
+            text: 'Network infrastructure (Routing/switching) settings',
           },
         ]);
         // Load dashboard application bundle

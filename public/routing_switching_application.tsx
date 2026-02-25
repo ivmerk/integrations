@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { AppMountParameters, CoreStart } from '../../../src/core/public';
 import { AppPluginStartDependencies } from './types';
+import { routingSwitchingDevicesGroupsFilters } from '../common/constants';
 
 // Simple Dashboard component
 const DashboardApp: React.FC<{
