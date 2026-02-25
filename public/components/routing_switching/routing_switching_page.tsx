@@ -24,6 +24,7 @@ import {
   EuiFormRow,
   EuiFieldText,
   EuiSpacer,
+  EuiPopover,
 } from '@elastic/eui';
 import { CoreStart } from '../../../../src/core/public';
 import { routingSwitchingDevicesGroupsFilters } from '../../../common/constants';
@@ -49,6 +50,7 @@ export const RoutingSwitchingPage = ({ basename, notifications, http }: RoutingS
   const [formName, setFormName] = useState('');
   const [formIp, setFormIp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [manualPopoverIndex, setManualPopoverIndex] = useState<number | null>(null);
 
   const fetchDevices = async () => {
     try {
@@ -120,7 +122,6 @@ export const RoutingSwitchingPage = ({ basename, notifications, http }: RoutingS
                             className="integration-card"
                             hasBorder
                             paddingSize="m"
-                            style={!isEnabled ? { opacity: 0.5, pointerEvents: 'none' } : {}}
                           >
                             <EuiFlexGroup
                               className="integration-content"
@@ -147,7 +148,7 @@ export const RoutingSwitchingPage = ({ basename, notifications, http }: RoutingS
                                   </EuiText>
                                 </EuiFlexItem>
                               )}
-                              {isEnabled && (
+                              {isEnabled ? (
                                 <>
                                   <EuiFlexItem grow={false}>
                                     <EuiHealth color={connectedCount > 0 ? 'success' : 'subdued'}>
@@ -164,6 +165,31 @@ export const RoutingSwitchingPage = ({ basename, notifications, http }: RoutingS
                                     </EuiButton>
                                   </EuiFlexItem>
                                 </>
+                              ) : (
+                                <EuiFlexItem grow={false}>
+                                  <EuiPopover
+                                    button={
+                                      <EuiButton
+                                        size="s"
+                                        className="manual-btn"
+                                        onClick={() =>
+                                          setManualPopoverIndex(
+                                            manualPopoverIndex === index ? null : index
+                                          )
+                                        }
+                                      >
+                                        Configure manually
+                                      </EuiButton>
+                                    }
+                                    isOpen={manualPopoverIndex === index}
+                                    closePopover={() => setManualPopoverIndex(null)}
+                                    anchorPosition="downCenter"
+                                  >
+                                    <div style={{ padding: '16px', maxWidth: '300px' }}>
+                                      This feature will be available later
+                                    </div>
+                                  </EuiPopover>
+                                </EuiFlexItem>
                               )}
                             </EuiFlexGroup>
                           </EuiPanel>
