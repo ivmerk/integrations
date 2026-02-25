@@ -96,6 +96,7 @@ export const RoutingSwitchingPage = ({ basename, notifications, http }: RoutingS
   return (
     <Router basename={basename}>
       <I18nProvider>
+        <>
         <div className="integrations-wrapper">
           <EuiPage restrictWidth="1000px">
             <EuiPageBody component="main">
@@ -215,6 +216,7 @@ export const RoutingSwitchingPage = ({ basename, notifications, http }: RoutingS
             </EuiModalFooter>
           </EuiModal>
         )}
+        </>
       </I18nProvider>
     </Router>
   );
