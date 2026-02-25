@@ -16,19 +16,19 @@ export const VIRUSTOTAL_DOC_URL = 'https://netanelpo.github.io/scopd-integration
 export const routingSwitchingDevicesGroupsFilters = [
   {
     title: 'Cisco Routers / Cisco Switches',
-    iconUrl: 'https://www.cisco.com/c/en/us/td/docs/routers/ios-xml/ios-xml-book/ios-xml-book-cover.jpg',
+    icon: 'cisco',
     models: ['Cisco 900 Series', 'ISR 1100 / 1900 / 2800 / 2900 / 3800 / 4000', 'Catalyst 9300 / 9200', 'Catalyst 3850 / 3750 / 3650 / 3560 / 2960 / 2950'] ,
     value: 'cisco_ios'
   },
   {
     title: 'Juniper Switches',
-    iconUrl: 'https://www.cisco.com/c/en/us/td/docs/routers/ios-xml/ios-xml-book/ios-xml-book-cover.jpg',
+    icon: 'juniperNetworks',
     models: ['EX2100 / EX3200 / EX4200 / EX4600'] ,
     value: null
 },
   {
     title: 'Cisco Nexus',
-    iconUrl: 'https://www.cisco.com/c/en/us/td/docs/routers/ios-xml/ios-xml-book/ios-xml-book-cover.jpg',
+    icon: 'cisco',
     models: [],
     value: null
   }

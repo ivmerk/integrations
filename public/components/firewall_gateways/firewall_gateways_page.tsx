@@ -12,7 +12,7 @@ interface FirewallGatewaysPageProps {
 export const FirewallGatewaysPage = ({ basename, notifications, http }: FirewallGatewaysPageProps) => (
   <DevicesGroupPage
     basename={basename}
-    pageTitle="Firewall &amp; Gateways"
+    pageTitle="Firewalls &amp; Gateways"
     filters={firewallGatewaysGroupsFilters}
     notifications={notifications}
     http={http}

@@ -27,19 +27,22 @@ import {
   EuiToolTip,
 } from '@elastic/eui';
 import { CoreStart } from '../../../../src/core/public';
+import {IntegrationIcon} from "./integrations_list/integration_icon";
 
 interface Device {
   name: string;
   connection: string;
   groups_filter: string;
   allowed_ips: string;
+  rules_file?: string;
+  decoders_file?: string;
 }
 
 export interface DeviceGroupFilter {
   title: string;
   models: string[];
   value: string | null;
-  iconUrl?: string;
+  icon?: string;
 }
 
 interface DevicesGroupPageProps {
@@ -137,14 +140,8 @@ export const DevicesGroupPage = ({
                                 alignItems="center"
                                 gutterSize="s"
                               >
-                                {filter.iconUrl && (
-                                  <EuiFlexItem grow={false}>
-                                    <img
-                                      src={filter.iconUrl}
-                                      alt={filter.title}
-                                      style={{ width: 64, height: 64, objectFit: 'contain' }}
-                                    />
-                                  </EuiFlexItem>
+                                {filter.icon && (
+                                  <IntegrationIcon name={filter.icon}/>
                                 )}
                                 <EuiFlexItem grow={false}>
                                   <EuiToolTip
