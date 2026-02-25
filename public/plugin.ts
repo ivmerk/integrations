@@ -87,6 +87,38 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
       },
     });
 
+    // Register firewall & gateways application
+    core.application.register({
+      id: 'firewall-gateways-settings',
+      get title() {
+        return i18n.translate('core.ui.integrationsNavListFirewallGatewaysSettings.label', {
+          defaultMessage: 'Firewall & Gateways settings',
+        });
+      },
+      category: {
+        id: 'integrations',
+        order: 50,
+        get label() {
+          return i18n.translate('core.ui.integrationsNavList.label', {
+            defaultMessage: 'Integrations',
+          });
+        },
+        euiIconType: 'visLine',
+      },
+      order: -998,
+      async mount(params: AppMountParameters) {
+        const [coreStart, depsStart] = await core.getStartServices();
+
+        coreStart.chrome.setBreadcrumbs([
+          { text: 'Integrations' },
+          { text: 'Firewall & Gateways settings' },
+        ]);
+
+        const { renderApp } = await import('./firewall_gateways_application');
+        return renderApp(coreStart, depsStart as AppPluginStartDependencies, params);
+      },
+    });
+
     // Return methods that should be available to other plugins
     return {
       getGreeting() {
