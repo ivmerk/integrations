@@ -25,6 +25,7 @@ import {
   EuiFieldText,
   EuiSpacer,
   EuiPopover,
+  EuiToolTip,
 } from '@elastic/eui';
 import { CoreStart } from '../../../../src/core/public';
 import { routingSwitchingDevicesGroupsFilters } from '../../../common/constants';
@@ -137,17 +138,21 @@ export const RoutingSwitchingPage = ({ basename, notifications, http }: RoutingS
                                 />
                               </EuiFlexItem>
                               <EuiFlexItem grow={false}>
-                                <EuiTitle size="xs">
-                                  <h3>{filter.title}</h3>
-                                </EuiTitle>
+                                <EuiToolTip
+                                  position="top"
+                                  content={
+                                    filter.models.length > 0
+                                      ? filter.models.join(', ')
+                                      : undefined
+                                  }
+                                >
+                                  <EuiTitle size="xs">
+                                    <h3 style={{ cursor: filter.models.length > 0 ? 'help' : 'default' }}>
+                                      {filter.title}
+                                    </h3>
+                                  </EuiTitle>
+                                </EuiToolTip>
                               </EuiFlexItem>
-                              {filter.models.length > 0 && (
-                                <EuiFlexItem grow={false}>
-                                  <EuiText size="xs" color="subdued" textAlign="center">
-                                    <p>{filter.models.join(', ')}</p>
-                                  </EuiText>
-                                </EuiFlexItem>
-                              )}
                               {isEnabled ? (
                                 <>
                                   <EuiFlexItem grow={false}>
