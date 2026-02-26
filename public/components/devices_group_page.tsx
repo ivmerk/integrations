@@ -152,10 +152,11 @@ export const DevicesGroupPage = ({
                                         : undefined
                                     }
                                   >
-                                    <EuiTitle size="xs">
+                                    <EuiTitle size="xs" style={{ textAlign: 'center'}}>
                                       <h3
                                         style={{
                                           cursor: filter.models.length > 0 ? 'help' : 'default',
+
                                         }}
                                       >
                                         {filter.title}
