@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-const WIDTH = 134;
-const HEIGHT = 21.59;
+const WIDTH = 266;
+const HEIGHT = 60;
 
 type Props = React.SVGProps<SVGSVGElement> & {
   backgroundColor?: string;
@@ -14,11 +14,11 @@ export const JuniperNetworksLogo = ({
   <svg
     width={WIDTH}
     height={HEIGHT}
-    viewBox="0 0 350 70"
+    viewBox="0 28 340 76"
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <g transform="translate(0.000000,63.000000) scale(0.100000,-0.100000)"
+    <g transform="translate(0,103) scale(0.100000,-0.100000)"
        fill="#000000" stroke="none">
       <path d="M2114 624 c-12 -3 -32 -16 -45 -30 -22 -24 -24 -35 -27 -160 -3 -130
 -3 -134 17 -134 20 0 21 5 21 123 1 148 6 158 82 165 43 3 58 0 81 -18 27 -21

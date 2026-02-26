@@ -18,7 +18,7 @@ import {
   SlackLogo,
   SplunkLogo,
   TheHiveLogo,
-  TinesLogo, JuniperNetworksLogo,
+  TinesLogo, JuniperNetworksLogo, PanoAltoNetworksLogo, FortiNetLogo,
 } from './logos';
 import {CiscoLogo} from "./logos/CiscoLogo";
 
@@ -45,6 +45,8 @@ export const integrationIcons = {
   tines: TinesLogo,
   juniperNetworks: JuniperNetworksLogo,
   cisco: CiscoLogo,
+  panoAltoNetworks: PanoAltoNetworksLogo,
+  fortiNet: FortiNetLogo
 } as const;
 
 export type IntegrationIconName = keyof typeof integrationIcons;

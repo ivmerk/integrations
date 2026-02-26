@@ -22,3 +22,5 @@ export {TheHiveLogo} from  './TheHiveLogo';
 export {TinesLogo} from  './TinesLogo';
 export {JuniperNetworksLogo} from './JuniperNetworksLogo';
 export {CiscoLogo} from './CiscoLogo';
+export {PanoAltoNetworksLogo} from  './PanoAltoNetworksLogo';
+export {FortiNetLogo} from  './FortiNetLogo';
