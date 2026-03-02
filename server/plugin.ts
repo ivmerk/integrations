@@ -22,10 +22,13 @@ export class IntegrationsPlugin
 
   public setup(core: CoreSetup) {
     const router = core.http.createRouter();
+    const serverInfo = core.http.getServerInfo();
+    const baseUrl = `${serverInfo.protocol}://127.0.0.1:${serverInfo.port}`;
 
     // Register routes with logger
     defineRoutes(router, {
-      logger: this.logger
+      logger: this.logger,
+      baseUrl,
     });
 
     this.logger.debug('integrations: Setup');

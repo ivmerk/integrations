@@ -8,3 +8,4 @@ yarn.lock
 *.iml
 *.ipr
 /prompts/
+CLAUDE.md

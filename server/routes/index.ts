@@ -10,6 +10,7 @@ import { createWazuhApiClient, applyAllowedIps, injectOssecBlock, removeOssecRem
 
 interface RouteDependencies {
   logger: Logger;
+  baseUrl: string;
 }
 interface IntegrationStatusAttributes {
   integration: string;
@@ -177,17 +178,13 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           }
         }
 
-        // Build Wazuh API client.
-        // Use 127.0.0.1 explicitly — 'localhost' may resolve to ::1 (IPv6) on some systems
-        // while the OSD server binds to 0.0.0.0 (IPv4 only), causing ECONNREFUSED.
-        const host = request.headers.host as string;
-        const port = host.includes(':') ? host.split(':')[1] : '5601';
+        // Build Wazuh API client using the OSD server's actual bound address.
         const rawCookie = request.headers.cookie;
         const wazuhHeaders: Record<string, string> = {};
         if (rawCookie) {
           wazuhHeaders.cookie = Array.isArray(rawCookie) ? rawCookie.join('; ') : rawCookie;
         }
-        const wazuhApi = createWazuhApiClient({ baseUrl: `http://127.0.0.1:${port}`, headers: wazuhHeaders });
+        const wazuhApi = createWazuhApiClient({ baseUrl: deps.baseUrl, headers: wazuhHeaders });
 
         // Login to Wazuh Manager to ensure an active session
         deps.logger.info('Device create: logging in to Wazuh Manager');
@@ -327,14 +324,12 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
         }
 
         // 2. Build Wazuh API client and login
-        const host = request.headers.host as string;
-        const port = host.includes(':') ? host.split(':')[1] : '5601';
         const rawCookie = request.headers.cookie;
         const wazuhHeaders: Record<string, string> = {};
         if (rawCookie) {
           wazuhHeaders.cookie = Array.isArray(rawCookie) ? rawCookie.join('; ') : rawCookie;
         }
-        const wazuhApi = createWazuhApiClient({ baseUrl: `http://127.0.0.1:${port}`, headers: wazuhHeaders });
+        const wazuhApi = createWazuhApiClient({ baseUrl: deps.baseUrl, headers: wazuhHeaders });
 
         deps.logger.info('Device delete: logging in to Wazuh Manager');
         await wazuhApi.login();

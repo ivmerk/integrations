@@ -53,7 +53,7 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
       id: 'network-infrastructure-settings',
       get title() {
         return i18n.translate('core.ui.integrationsNavListNetworkInfrastructureSettings.label', {
-          defaultMessage: 'Network Infrastructure (Routing & Switching) settings',
+          defaultMessage: 'Routing & Switching settings',
         });
       },
       category: {
@@ -77,7 +77,7 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
             text: 'Integrations',
           },
           {
-            text: 'Network infrastructure (Routing/switching) settings',
+            text: 'Routing & Switching settings',
           },
         ]);
         // Load dashboard application bundle
@@ -92,7 +92,7 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
       id: 'network-security-settings',
       get title() {
         return i18n.translate('core.ui.integrationsNavListNetworkSecuritySettings.label', {
-          defaultMessage: 'Network Security (Firewalls & Gateways) settings',
+          defaultMessage: 'Firewalls & Gateways settings',
         });
       },
       category: {
@@ -111,7 +111,7 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
 
         coreStart.chrome.setBreadcrumbs([
           { text: 'Integrations' },
-          { text: 'Network Security settings' },
+          { text: 'Firewalls & Gateways settings' },
         ]);
 
         const { renderApp } = await import('./firewall_gateways_application');
