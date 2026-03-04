@@ -1,4 +1,57 @@
+import https from 'https';
+import http from 'http';
+import { URL } from 'url';
 import { GROUP_NAME, SCOPD_RULES_FILE_NAME, SCOPD_DECODERS_FILE_NAME } from '../../common/constants';
+
+// Loopback self-calls go to OSD's own HTTPS endpoint which uses a self-signed
+// certificate. Use https.request directly with rejectUnauthorized:false so we
+// skip verification only for these internal calls.
+const loopbackHttpsAgent = new https.Agent({ rejectUnauthorized: false });
+
+interface InternalResponse {
+  ok: boolean;
+  status: number;
+  text(): Promise<string>;
+  json(): Promise<any>;
+  headers: { getSetCookie(): string[] };
+}
+
+function internalFetch(
+  url: string,
+  options: { method: string; headers: Record<string, string>; body?: string }
+): Promise<InternalResponse> {
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(url);
+    const isHttps = parsed.protocol === 'https:';
+    const reqOptions = {
+      hostname: parsed.hostname,
+      port: parsed.port || (isHttps ? 443 : 80),
+      path: parsed.pathname + parsed.search,
+      method: options.method,
+      headers: options.headers,
+      agent: isHttps ? loopbackHttpsAgent : undefined,
+    };
+    const mod = isHttps ? https : http;
+    const req = mod.request(reqOptions, (res) => {
+      const setCookies = (res.headers['set-cookie'] || []) as string[];
+      let data = '';
+      res.on('data', (chunk: Buffer) => { data += chunk; });
+      res.on('end', () => {
+        const status = res.statusCode ?? 0;
+        resolve({
+          ok: status >= 200 && status < 300,
+          status,
+          text: () => Promise.resolve(data),
+          json: () => Promise.resolve(JSON.parse(data)),
+          headers: { getSetCookie: () => setCookies },
+        });
+      });
+    });
+    req.on('error', reject);
+    if (options.body) req.write(options.body);
+    req.end();
+  });
+}
 
 interface WazuhApiClientOptions {
   baseUrl: string;
@@ -49,7 +102,7 @@ export function createWazuhApiClient(opts: WazuhApiClientOptions) {
 
   async function callApiRequest(wazuhMethod: string, path: string, body: object = {}): Promise<any> {
     const cookieHeader = getCookieHeader();
-    const response = await fetch(`${opts.baseUrl}/api/request`, {
+    const response = await internalFetch(`${opts.baseUrl}/api/request`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -80,7 +133,7 @@ export function createWazuhApiClient(opts: WazuhApiClientOptions) {
   return {
     async login(): Promise<void> {
       const cookieHeader = getCookieHeader();
-      const response = await fetch(`${opts.baseUrl}/api/login`, {
+      const response = await internalFetch(`${opts.baseUrl}/api/login`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -91,9 +144,7 @@ export function createWazuhApiClient(opts: WazuhApiClientOptions) {
       });
       // Capture Wazuh auth cookies (wz-token, wz-user, wz-api) from login response.
       // getSetCookie() returns each Set-Cookie header as a separate string (Node 18+).
-      const headers = response.headers as any;
-      const setCookies: string[] =
-        typeof headers.getSetCookie === 'function' ? headers.getSetCookie() : [];
+      const setCookies = response.headers.getSetCookie();
       if (setCookies.length > 0) {
         // Extract only the name=value part from each Set-Cookie (drop Path, HttpOnly, etc.)
         wazuhCookieString = setCookies
@@ -128,7 +179,7 @@ export function createWazuhApiClient(opts: WazuhApiClientOptions) {
 
     async getManagerConfig(): Promise<string> {
       const cookieHeader = getCookieHeader();
-      const response = await fetch(`${opts.baseUrl}/api/request`, {
+      const response = await internalFetch(`${opts.baseUrl}/api/request`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
