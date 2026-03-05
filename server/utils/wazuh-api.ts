@@ -142,6 +142,10 @@ export function createWazuhApiClient(opts: WazuhApiClientOptions) {
         },
         body: JSON.stringify({ idHost: 'default', force: true }),
       });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Wazuh login failed: ${response.status} ${text}`);
+      }
       // Capture Wazuh auth cookies (wz-token, wz-user, wz-api) from login response.
       // getSetCookie() returns each Set-Cookie header as a separate string (Node 18+).
       const setCookies = response.headers.getSetCookie();
