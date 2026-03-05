@@ -92,9 +92,37 @@ export function injectOssecBlock(confFileContent: string, blockContent: string):
   return `${before}\n${indent}${blockContent.trim().replace(/\n/g, `\n${indent}`)}${after}`;
 }
 
+function parseCookieString(cookieStr: string): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const pair of cookieStr.split(';')) {
+    const trimmed = pair.trim();
+    const eq = trimmed.indexOf('=');
+    if (eq > 0) {
+      map.set(trimmed.substring(0, eq).trim(), trimmed.substring(eq + 1));
+    }
+  }
+  return map;
+}
+
+function applyCookieOverrides(base: string, setCookieHeaders: string[]): string {
+  const map = parseCookieString(base);
+  for (const header of setCookieHeaders) {
+    const nameValue = header.split(';')[0].trim();
+    const eq = nameValue.indexOf('=');
+    if (eq > 0) {
+      map.set(nameValue.substring(0, eq).trim(), nameValue.substring(eq + 1));
+    }
+  }
+  return Array.from(map.entries()).map(([k, v]) => `${k}=${v}`).join('; ');
+}
+
 export function createWazuhApiClient(opts: WazuhApiClientOptions) {
+  // Active cookie string for all calls. Login may update this with a rotated
+  // OSD session and fresh wz-* tokens — both must stay in sync.
+  let activeCookies = opts.headers.cookie || '';
+
   function getCookieHeader(): string {
-    return opts.headers.cookie || '';
+    return activeCookies;
   }
 
   async function callApiRequest(wazuhMethod: string, path: string, body: object = {}): Promise<any> {
@@ -129,6 +157,31 @@ export function createWazuhApiClient(opts: WazuhApiClientOptions) {
   }
 
   return {
+    async login(): Promise<void> {
+      const cookieHeader = getCookieHeader();
+      const response = await internalFetch(`${opts.baseUrl}/api/login`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'osd-xsrf': 'true',
+          ...(cookieHeader ? { cookie: cookieHeader } : {}),
+        },
+        body: JSON.stringify({ idHost: 'default', force: true }),
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Wazuh login failed: ${response.status} ${text}`);
+      }
+      const setCookies = response.headers.getSetCookie();
+      if (setCookies.length > 0) {
+        // Merge login response cookies into activeCookies so that any rotated
+        // OSD session token and fresh wz-* tokens replace the stale originals.
+        // Same-named cookies appear only once (new value wins), preventing the
+        // "old session ID sent first" problem that caused 401 on /api/request.
+        activeCookies = applyCookieOverrides(activeCookies, setCookies);
+      }
+    },
+
     async uploadRulesFile(fileContent: string): Promise<void> {
       await callApiRequest('PUT', `/rules/files/${SCOPD_RULES_FILE_NAME}`, {
         body: fileContent,
