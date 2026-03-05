@@ -107,6 +107,7 @@ export function createWazuhApiClient(opts: WazuhApiClientOptions) {
       headers: {
         'content-type': 'application/json',
         'osd-xsrf': 'true',
+        'id': GROUP_NAME,
         ...(cookieHeader ? { cookie: cookieHeader } : {}),
       },
       body: JSON.stringify({ body, id: GROUP_NAME, method: wazuhMethod, path }),
@@ -188,6 +189,7 @@ export function createWazuhApiClient(opts: WazuhApiClientOptions) {
         headers: {
           'content-type': 'application/json',
           'osd-xsrf': 'true',
+          'id': GROUP_NAME,
           ...(cookieHeader ? { cookie: cookieHeader } : {}),
         },
         body: JSON.stringify({
