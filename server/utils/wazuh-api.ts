@@ -93,11 +93,8 @@ export function injectOssecBlock(confFileContent: string, blockContent: string):
 }
 
 export function createWazuhApiClient(opts: WazuhApiClientOptions) {
-  // Wazuh auth cookies captured from /api/login: wz-token, wz-user, wz-api
-  let wazuhCookieString = '';
-
   function getCookieHeader(): string {
-    return [opts.headers.cookie, wazuhCookieString].filter(Boolean).join('; ');
+    return opts.headers.cookie || '';
   }
 
   async function callApiRequest(wazuhMethod: string, path: string, body: object = {}): Promise<any> {
@@ -132,32 +129,6 @@ export function createWazuhApiClient(opts: WazuhApiClientOptions) {
   }
 
   return {
-    async login(): Promise<void> {
-      const cookieHeader = getCookieHeader();
-      const response = await internalFetch(`${opts.baseUrl}/api/login`, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'osd-xsrf': 'true',
-          ...(cookieHeader ? { cookie: cookieHeader } : {}),
-        },
-        body: JSON.stringify({ idHost: 'default', force: true }),
-      });
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Wazuh login failed: ${response.status} ${text}`);
-      }
-      // Capture Wazuh auth cookies (wz-token, wz-user, wz-api) from login response.
-      // getSetCookie() returns each Set-Cookie header as a separate string (Node 18+).
-      const setCookies = response.headers.getSetCookie();
-      if (setCookies.length > 0) {
-        // Extract only the name=value part from each Set-Cookie (drop Path, HttpOnly, etc.)
-        wazuhCookieString = setCookies
-          .map((c: string) => c.split(';')[0].trim())
-          .join('; ');
-      }
-    },
-
     async uploadRulesFile(fileContent: string): Promise<void> {
       await callApiRequest('PUT', `/rules/files/${SCOPD_RULES_FILE_NAME}`, {
         body: fileContent,

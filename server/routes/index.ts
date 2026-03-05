@@ -184,12 +184,8 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
         if (rawCookie) {
           wazuhHeaders.cookie = Array.isArray(rawCookie) ? rawCookie.join('; ') : rawCookie;
         }
+        deps.logger.info(`Device create: cookie present=${!!rawCookie}`);
         const wazuhApi = createWazuhApiClient({ baseUrl: deps.baseUrl, headers: wazuhHeaders });
-
-        // Login to Wazuh Manager to ensure an active session
-        deps.logger.info('Device create: logging in to Wazuh Manager');
-        await wazuhApi.login();
-        deps.logger.info('Device create: login OK');
 
         // Upload rules file to Wazuh Manager
         if (rules_file) {
@@ -330,10 +326,6 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           wazuhHeaders.cookie = Array.isArray(rawCookie) ? rawCookie.join('; ') : rawCookie;
         }
         const wazuhApi = createWazuhApiClient({ baseUrl: deps.baseUrl, headers: wazuhHeaders });
-
-        deps.logger.info('Device delete: logging in to Wazuh Manager');
-        await wazuhApi.login();
-        deps.logger.info('Device delete: login OK');
 
         // 3. Delete rules file from Wazuh Manager
         if (device.rules_file) {
