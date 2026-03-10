@@ -158,28 +158,47 @@ export function createWazuhApiClient(opts: WazuhApiClientOptions) {
 
   return {
     async login(): Promise<void> {
-      const cookieHeader = getCookieHeader();
-      const response = await internalFetch(`${opts.baseUrl}/api/login`, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'osd-xsrf': 'true',
-          ...(cookieHeader ? { cookie: cookieHeader } : {}),
-        },
-        body: JSON.stringify({ idHost: 'default', force: true }),
-      });
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Wazuh login failed: ${response.status} ${text}`);
+      // Retry login to handle the case where the Wazuh Manager is still
+      // restarting (e.g. after a previous device creation triggered a restart).
+      // Attempt up to MAX_RETRIES times with RETRY_DELAY_MS between attempts.
+      const MAX_RETRIES = 5;
+      const RETRY_DELAY_MS = 4000;
+      let lastError: Error = new Error('Wazuh login failed');
+
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        if (attempt > 0) {
+          await new Promise<void>((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+        }
+        try {
+          const cookieHeader = getCookieHeader();
+          const response = await internalFetch(`${opts.baseUrl}/api/login`, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              'osd-xsrf': 'true',
+              ...(cookieHeader ? { cookie: cookieHeader } : {}),
+            },
+            body: JSON.stringify({ idHost: 'default', force: true }),
+          });
+          if (!response.ok) {
+            const text = await response.text();
+            lastError = new Error(`Wazuh login failed: ${response.status} ${text}`);
+            continue; // retry
+          }
+          const setCookies = response.headers.getSetCookie();
+          if (setCookies.length > 0) {
+            // Merge login response cookies into activeCookies so that any rotated
+            // OSD session token and fresh wz-* tokens replace the stale originals.
+            // Same-named cookies appear only once (new value wins), preventing the
+            // "old session ID sent first" problem that caused 401 on /api/request.
+            activeCookies = applyCookieOverrides(activeCookies, setCookies);
+          }
+          return; // success
+        } catch (err) {
+          lastError = err instanceof Error ? err : new Error(String(err));
+        }
       }
-      const setCookies = response.headers.getSetCookie();
-      if (setCookies.length > 0) {
-        // Merge login response cookies into activeCookies so that any rotated
-        // OSD session token and fresh wz-* tokens replace the stale originals.
-        // Same-named cookies appear only once (new value wins), preventing the
-        // "old session ID sent first" problem that caused 401 on /api/request.
-        activeCookies = applyCookieOverrides(activeCookies, setCookies);
-      }
+      throw lastError;
     },
 
     async uploadRulesFile(fileContent: string): Promise<void> {

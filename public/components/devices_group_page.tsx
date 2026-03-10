@@ -180,6 +180,15 @@ export const DevicesGroupPage = ({
                                         Connected: {connectedCount}
                                       </EuiHealth>
                                     </EuiFlexItem>
+                                    <EuiFlexItem grow={false}>
+                                      <EuiButtonEmpty
+                                        size="s"
+                                        href={`/app/integration-${filter.value!.replace(/_/g, '-')}`}
+                                        iconType="dashboardApp"
+                                      >
+                                        Dashboard
+                                      </EuiButtonEmpty>
+                                    </EuiFlexItem>
                                   </>
                                 ) : (
                                   <EuiFlexItem grow={false}>
