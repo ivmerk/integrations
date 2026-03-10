@@ -25,6 +25,7 @@ import {
   EuiSpacer,
   EuiPopover,
   EuiToolTip,
+  EuiIconTip,
 } from '@elastic/eui';
 import { CoreStart } from '../../../../src/core/public';
 import {IntegrationIcon} from "./integrations_list/integration_icon";
@@ -43,6 +44,7 @@ export interface DeviceGroupFilter {
   models: string[];
   value: string | null;
   icon?: string;
+  description?: string;
 }
 
 interface DevicesGroupPageProps {
@@ -237,7 +239,18 @@ export const DevicesGroupPage = ({
               </EuiModalHeader>
               <EuiModalBody>
                 <EuiForm>
-                  <EuiFormRow label="Device name">
+                  <EuiFormRow
+                    label="Device name"
+                    labelAppend={
+                      filters[modalFilterIndex].description ? (
+                        <EuiIconTip
+                          content={filters[modalFilterIndex].description}
+                          position="right"
+                          type="questionInCircle"
+                        />
+                      ) : undefined
+                    }
+                  >
                     <EuiFieldText
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}

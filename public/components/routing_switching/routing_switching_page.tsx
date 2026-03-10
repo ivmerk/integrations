@@ -13,7 +13,8 @@ const routingSwitchingDevicesGroupsFilters = [
     title: 'Cisco Routers / Cisco Switches',
     icon: 'cisco',
     models: ['Cisco 900 Series', 'ISR 1100 / 1900 / 2800 / 2900 / 3800 / 4000', 'Catalyst 9300 / 9200', 'Catalyst 3850 / 3750 / 3650 / 3560 / 2960 / 2950'] ,
-    value: 'cisco_ios'
+    value: 'cisco_ios',
+    description: 'Enter the hostname or identifier for your Cisco IOS router or switch. This name will be used to label the device in the dashboard.',
   },
   {
     title: 'Juniper Switches',
