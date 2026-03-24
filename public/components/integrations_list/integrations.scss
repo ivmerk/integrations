@@ -1,6 +1,5 @@
-// Single column layout
+// Grid layout
 .integrations-grid {
-  wrap: wrap;
   gap: 12px;
   display: flex;
   flex-wrap: wrap;
@@ -11,16 +10,21 @@
 }
 
 .integration-item {
-  min-width: 22%;
-  max-width: 24%;
+  flex-grow: 0 !important;
+  flex-shrink: 0 !important;
+  flex-basis: calc(25% - 12px) !important;
+  min-width: 180px;
+  max-width: calc(25% - 12px);
   margin-bottom: 16px;
 }
 // Integration card
 .integration-card {
+  position: relative;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
+  height: 100%;
 
   &:hover {
     transform: translateX(2px);
@@ -157,4 +161,22 @@
     border-color: #69707d;
     background-color: rgba(0, 0, 0, 0.05);
   }
+}
+
+// Add Custom Group card
+.integration-card--add-custom {
+  border-style: dashed;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #69707d;
+  }
+}
+
+// Delete button for custom group cards
+.custom-group-delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
 }

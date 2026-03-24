@@ -34,6 +34,7 @@ export const RoutingSwitchingPage = ({ basename, notifications, http }: RoutingS
   <DevicesGroupPage
     basename={basename}
     pageTitle="Routing &amp; Switching"
+    pageId="routing-switching"
     filters={routingSwitchingDevicesGroupsFilters}
     notifications={notifications}
     http={http}

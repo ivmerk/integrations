@@ -13,6 +13,7 @@ import {
   EuiPanel,
   EuiButton,
   EuiButtonEmpty,
+  EuiButtonIcon,
   EuiHealth,
   EuiModal,
   EuiModalBody,
@@ -26,6 +27,7 @@ import {
   EuiPopover,
   EuiToolTip,
   EuiIconTip,
+  EuiText,
 } from '@elastic/eui';
 import { CoreStart } from '../../../../src/core/public';
 import {IntegrationIcon} from "./integrations_list/integration_icon";
@@ -47,9 +49,21 @@ export interface DeviceGroupFilter {
   description?: string;
 }
 
+interface CustomGroup {
+  uid: string;
+  value: string;
+  title: string;
+  models: string[];
+  description: string;
+  page: string;
+  icon: string;
+  created_at: string;
+}
+
 interface DevicesGroupPageProps {
   basename: string;
   pageTitle: string;
+  pageId: string;
   filters: DeviceGroupFilter[];
   notifications: CoreStart['notifications'];
   http: CoreStart['http'];
@@ -58,16 +72,25 @@ interface DevicesGroupPageProps {
 export const DevicesGroupPage = ({
   basename,
   pageTitle,
+  pageId,
   filters,
   notifications,
   http,
 }: DevicesGroupPageProps) => {
   const [devices, setDevices] = useState<Device[]>([]);
+  const [customGroups, setCustomGroups] = useState<CustomGroup[]>([]);
   const [modalFilterIndex, setModalFilterIndex] = useState<number | null>(null);
   const [formName, setFormName] = useState('');
   const [formIp, setFormIp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [manualPopoverIndex, setManualPopoverIndex] = useState<number | null>(null);
+
+  // Custom group creation dialog state
+  const [isCustomGroupModalOpen, setIsCustomGroupModalOpen] = useState(false);
+  const [customGroupName, setCustomGroupName] = useState('');
+  const [customGroupModels, setCustomGroupModels] = useState('');
+  const [customGroupDescription, setCustomGroupDescription] = useState('');
+  const [isCustomGroupSubmitting, setIsCustomGroupSubmitting] = useState(false);
 
   const fetchDevices = async () => {
     try {
@@ -78,9 +101,34 @@ export const DevicesGroupPage = ({
     }
   };
 
+  const fetchCustomGroups = async () => {
+    try {
+      const result = await http.get('/api/integrations/custom-group', {
+        query: { page: pageId },
+      });
+      setCustomGroups(result || []);
+    } catch (error) {
+      notifications.toasts.addError(error, { title: 'Failed to load custom groups' });
+    }
+  };
+
   useEffect(() => {
     fetchDevices();
+    fetchCustomGroups();
   }, []);
+
+  // Merge static filters with custom groups
+  const allFilters: (DeviceGroupFilter & { customGroupUid?: string })[] = [
+    ...filters,
+    ...customGroups.map((g) => ({
+      title: g.title,
+      models: g.models,
+      value: g.value,
+      icon: g.icon,
+      description: g.description,
+      customGroupUid: g.uid,
+    })),
+  ];
 
   const openModal = (index: number) => {
     setFormName('');
@@ -92,7 +140,7 @@ export const DevicesGroupPage = ({
 
   const handleSubmit = async () => {
     if (modalFilterIndex === null) return;
-    const filter = filters[modalFilterIndex];
+    const filter = allFilters[modalFilterIndex];
     setIsSubmitting(true);
     try {
       await http.post('/api/integrations/device', {
@@ -112,6 +160,55 @@ export const DevicesGroupPage = ({
     }
   };
 
+  const openCustomGroupModal = () => {
+    setCustomGroupName('');
+    setCustomGroupModels('');
+    setCustomGroupDescription('');
+    setIsCustomGroupModalOpen(true);
+  };
+
+  const closeCustomGroupModal = () => setIsCustomGroupModalOpen(false);
+
+  const handleCustomGroupSubmit = async () => {
+    setIsCustomGroupSubmitting(true);
+    try {
+      const decodedPageTitle = pageTitle.replace(/&amp;/g, '&');
+      const models = customGroupModels
+        .split(',')
+        .map((m) => m.trim())
+        .filter(Boolean);
+
+      await http.post('/api/integrations/custom-group', {
+        body: JSON.stringify({
+          value: customGroupName,
+          title: `${decodedPageTitle} Custom`,
+          models,
+          description: customGroupDescription,
+          page: pageId,
+        }),
+      });
+      closeCustomGroupModal();
+      await fetchCustomGroups();
+    } catch (error) {
+      notifications.toasts.addError(error, { title: 'Failed to create custom group' });
+    } finally {
+      setIsCustomGroupSubmitting(false);
+    }
+  };
+
+  const handleDeleteCustomGroup = async (uid: string) => {
+    try {
+      await http.delete('/api/integrations/custom-group', {
+        query: { uid },
+      });
+      await Promise.all([fetchCustomGroups(), fetchDevices()]);
+    } catch (error) {
+      notifications.toasts.addError(error, { title: 'Failed to delete custom group' });
+    }
+  };
+
+  const isValidCustomGroupName = /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(customGroupName);
+
   return (
     <Router basename={basename}>
       <I18nProvider>
@@ -126,15 +223,16 @@ export const DevicesGroupPage = ({
                 </EuiPageHeader>
                 <EuiPageContent>
                   <EuiPageContentBody grow={1}>
-                    <EuiFlexGroup className="integrations-grid" gutterSize="m">
-                      {filters.map((filter, index) => {
+                    <EuiFlexGroup className="integrations-grid" gutterSize="m" wrap>
+                      {allFilters.map((filter, index) => {
                         const connectedCount = devices.filter(
                           (d) => d.groups_filter === filter.value
                         ).length;
                         const isEnabled = filter.value !== null;
+                        const isCustom = !!(filter as any).customGroupUid;
 
                         return (
-                          <EuiFlexItem className="integration-item" key={index} grow={true}>
+                          <EuiFlexItem className="integration-item" key={index} grow={false}>
                             <EuiPanel className="integration-card" hasBorder paddingSize="m">
                               <EuiFlexGroup
                                 className="integration-content"
@@ -142,6 +240,20 @@ export const DevicesGroupPage = ({
                                 alignItems="center"
                                 gutterSize="s"
                               >
+                                {isCustom && (
+                                  <div className="custom-group-delete">
+                                    <EuiButtonIcon
+                                      iconType="trash"
+                                      color="danger"
+                                      aria-label="Delete custom group"
+                                      onClick={() =>
+                                        handleDeleteCustomGroup(
+                                          (filter as any).customGroupUid
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                )}
                                 {filter.icon && (
                                   <IntegrationIcon name={filter.icon}/>
                                 )}
@@ -223,6 +335,37 @@ export const DevicesGroupPage = ({
                           </EuiFlexItem>
                         );
                       })}
+
+                      {/* Add Custom Group card */}
+                      <EuiFlexItem className="integration-item" grow={false}>
+                        <EuiPanel
+                          className="integration-card integration-card--add-custom"
+                          hasBorder
+                          paddingSize="m"
+                          onClick={openCustomGroupModal}
+                        >
+                          <EuiFlexGroup
+                            className="integration-content"
+                            direction="column"
+                            alignItems="center"
+                            justifyContent="center"
+                            gutterSize="s"
+                          >
+                            <EuiFlexItem grow={false}>
+                              <EuiText size="m" color="subdued" textAlign="center">
+                                <span style={{ fontSize: '48px', lineHeight: 1 }}>+</span>
+                              </EuiText>
+                            </EuiFlexItem>
+                            <EuiFlexItem grow={false}>
+                              <EuiTitle size="xs">
+                                <h3 style={{ textAlign: 'center', color: '#69707D' }}>
+                                  Add Custom Group
+                                </h3>
+                              </EuiTitle>
+                            </EuiFlexItem>
+                          </EuiFlexGroup>
+                        </EuiPanel>
+                      </EuiFlexItem>
                     </EuiFlexGroup>
                   </EuiPageContentBody>
                 </EuiPageContent>
@@ -230,11 +373,12 @@ export const DevicesGroupPage = ({
             </EuiPage>
           </div>
 
+          {/* Add Device modal */}
           {modalFilterIndex !== null && (
             <EuiModal onClose={closeModal}>
               <EuiModalHeader>
                 <EuiModalHeaderTitle>
-                  Add Device — {filters[modalFilterIndex].title}
+                  Add Device — {allFilters[modalFilterIndex].title}
                 </EuiModalHeaderTitle>
               </EuiModalHeader>
               <EuiModalBody>
@@ -242,9 +386,9 @@ export const DevicesGroupPage = ({
                   <EuiFormRow
                     label="Device name"
                     labelAppend={
-                      filters[modalFilterIndex].description ? (
+                      allFilters[modalFilterIndex].description ? (
                         <EuiIconTip
-                          content={filters[modalFilterIndex].description}
+                          content={allFilters[modalFilterIndex].description}
                           position="right"
                           type="questionInCircle"
                         />
@@ -276,6 +420,66 @@ export const DevicesGroupPage = ({
                   isDisabled={!formName || !formIp}
                 >
                   Add Device
+                </EuiButton>
+              </EuiModalFooter>
+            </EuiModal>
+          )}
+
+          {/* Create Custom Group modal */}
+          {isCustomGroupModalOpen && (
+            <EuiModal onClose={closeCustomGroupModal}>
+              <EuiModalHeader>
+                <EuiModalHeaderTitle>Create Custom Group</EuiModalHeaderTitle>
+              </EuiModalHeader>
+              <EuiModalBody>
+                <EuiForm>
+                  <EuiFormRow
+                    label="Group name"
+                    helpText="Latin letters, digits, hyphens, and underscores only (e.g. my-device)"
+                    isInvalid={customGroupName.length > 0 && !isValidCustomGroupName}
+                    error={
+                      customGroupName.length > 0 && !isValidCustomGroupName
+                        ? 'Must start with a letter, only Latin letters, digits, hyphens, and underscores'
+                        : undefined
+                    }
+                  >
+                    <EuiFieldText
+                      value={customGroupName}
+                      onChange={(e) => setCustomGroupName(e.target.value)}
+                      placeholder="e.g. my-custom-device"
+                      isInvalid={customGroupName.length > 0 && !isValidCustomGroupName}
+                    />
+                  </EuiFormRow>
+                  <EuiSpacer size="m" />
+                  <EuiFormRow
+                    label="Models"
+                    helpText="Comma-separated list of supported models"
+                  >
+                    <EuiFieldText
+                      value={customGroupModels}
+                      onChange={(e) => setCustomGroupModels(e.target.value)}
+                      placeholder="e.g. Model A, Model B"
+                    />
+                  </EuiFormRow>
+                  <EuiSpacer size="m" />
+                  <EuiFormRow label="Description">
+                    <EuiFieldText
+                      value={customGroupDescription}
+                      onChange={(e) => setCustomGroupDescription(e.target.value)}
+                      placeholder="Description for this device group"
+                    />
+                  </EuiFormRow>
+                </EuiForm>
+              </EuiModalBody>
+              <EuiModalFooter>
+                <EuiButtonEmpty onClick={closeCustomGroupModal}>Cancel</EuiButtonEmpty>
+                <EuiButton
+                  fill
+                  onClick={handleCustomGroupSubmit}
+                  isLoading={isCustomGroupSubmitting}
+                  isDisabled={!customGroupName || !isValidCustomGroupName}
+                >
+                  Create Group
                 </EuiButton>
               </EuiModalFooter>
             </EuiModal>

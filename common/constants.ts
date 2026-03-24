@@ -10,6 +10,7 @@ export const SCOPD_OSSEC_CONF_FILE_NAME = 'ossec.conf.xml';
 export const GROUP_NAME = 'default';
 
 export const DEVICES_INDEX = 'integrations-devices';
+export const CUSTOM_GROUPS_INDEX = 'integrations-custom-groups';
 
 export const VIRUSTOTAL_DOC_URL = 'https://netanelpo.github.io/scopd-integrations-docs/integrations/virustotal/';
 

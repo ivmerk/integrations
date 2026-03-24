@@ -49,6 +49,7 @@ export const FirewallGatewaysPage = ({ basename, notifications, http }: Firewall
   <DevicesGroupPage
     basename={basename}
     pageTitle="Firewalls &amp; Gateways"
+    pageId="firewall-gateways"
     filters={firewallGatewaysGroupsFilters}
     notifications={notifications}
     http={http}

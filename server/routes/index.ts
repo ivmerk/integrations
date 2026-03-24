@@ -3,7 +3,7 @@ import { schema } from '@osd/config-schema';
 import { Logger } from '../../../../src/core/server';
 import { access } from 'fs/promises';
 import { join } from 'path';
-import { CONFIGURATION_FILES_PATH, DEVICES_INDEX, SCOPD_OSSEC_CONF_FILE_NAME } from "../../common/constants";
+import { CONFIGURATION_FILES_PATH, DEVICES_INDEX, CUSTOM_GROUPS_INDEX, SCOPD_OSSEC_CONF_FILE_NAME } from "../../common/constants";
 import { readFileContent } from "../../common/file_utils";
 import { generateUlid } from "../utils/ulid";
 import { createWazuhApiClient, applyAllowedIps, injectOssecBlock, removeOssecRemoteBlock } from "../utils/wazuh-api";
@@ -441,6 +441,188 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           statusCode: 500,
           body: {
             message: `Failed to get device(s): ${errorMessage}`,
+            attributes: { details: error instanceof Error ? error.toString() : String(error) },
+          },
+        });
+      }
+    }
+  );
+
+  // POST /api/integrations/custom-group — Create a custom device group
+  router.post(
+    {
+      path: '/api/integrations/custom-group',
+      validate: {
+        body: schema.object({
+          value: schema.string({
+            validate(v) {
+              if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(v)) {
+                return 'value must start with a letter and contain only Latin letters, digits, hyphens, and underscores';
+              }
+            },
+          }),
+          title: schema.string(),
+          models: schema.arrayOf(schema.string()),
+          description: schema.maybe(schema.string()),
+          page: schema.string(),
+        }),
+      },
+    },
+    async (context, request, response) => {
+      try {
+        const client = context.core.opensearch.client.asCurrentUser;
+        const uid = generateUlid();
+        const now = new Date().toISOString();
+
+        const document = {
+          uid,
+          value: request.body.value,
+          title: request.body.title,
+          models: request.body.models,
+          description: request.body.description ?? '',
+          page: request.body.page,
+          icon: 'customDevice',
+          created_at: now,
+        };
+
+        await client.index({
+          index: CUSTOM_GROUPS_INDEX,
+          id: uid,
+          body: document,
+          refresh: 'wait_for',
+        });
+
+        deps.logger.info(`Custom group created: uid=${uid}, value=${request.body.value}, page=${request.body.page}`);
+
+        return response.ok({ body: { uid } });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        deps.logger.error(`Failed to create custom group: ${errorMessage}`, { error });
+
+        return response.customError({
+          statusCode: 500,
+          body: {
+            message: `Failed to create custom group: ${errorMessage}`,
+            attributes: { details: error instanceof Error ? error.toString() : String(error) },
+          },
+        });
+      }
+    }
+  );
+
+  // GET /api/integrations/custom-group — Get custom groups, optionally filtered by page
+  router.get(
+    {
+      path: '/api/integrations/custom-group',
+      validate: {
+        query: schema.object({
+          page: schema.maybe(schema.string()),
+        }),
+      },
+    },
+    async (context, request, response) => {
+      try {
+        const client = context.core.opensearch.client.asCurrentUser;
+        const { page } = request.query;
+
+        const query = page
+          ? { bool: { filter: [{ term: { 'page.keyword': page } }] } }
+          : { match_all: {} };
+
+        const result = await client.search({
+          index: CUSTOM_GROUPS_INDEX,
+          body: { query },
+          size: 10000,
+        });
+
+        const groups = result.body.hits.hits.map((hit: any) => hit._source);
+        return response.ok({ body: groups });
+      } catch (error) {
+        const statusCode = (error as any)?.statusCode;
+
+        if (statusCode === 404) {
+          return response.ok({ body: [] });
+        }
+
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        deps.logger.error(`Failed to get custom group(s): ${errorMessage}`, { error });
+
+        return response.customError({
+          statusCode: 500,
+          body: {
+            message: `Failed to get custom group(s): ${errorMessage}`,
+            attributes: { details: error instanceof Error ? error.toString() : String(error) },
+          },
+        });
+      }
+    }
+  );
+
+  // DELETE /api/integrations/custom-group?uid={uid} — Delete a custom group and its devices
+  router.delete(
+    {
+      path: '/api/integrations/custom-group',
+      validate: {
+        query: schema.object({
+          uid: schema.string(),
+        }),
+      },
+    },
+    async (context, request, response) => {
+      try {
+        const client = context.core.opensearch.client.asCurrentUser;
+        const { uid } = request.query;
+
+        // Fetch the group to get its value (groups_filter)
+        let group: any;
+        try {
+          const result = await client.get({ index: CUSTOM_GROUPS_INDEX, id: uid });
+          group = result.body._source;
+        } catch (error) {
+          if ((error as any)?.statusCode === 404) {
+            return response.customError({
+              statusCode: 404,
+              body: { message: `Custom group with uid=${uid} not found` },
+            });
+          }
+          throw error;
+        }
+
+        // Delete all devices belonging to this custom group
+        try {
+          await client.deleteByQuery({
+            index: DEVICES_INDEX,
+            body: {
+              query: { term: { 'groups_filter.keyword': group.value } },
+            },
+            refresh: true,
+          });
+          deps.logger.info(`Custom group delete: removed devices with groups_filter=${group.value}`);
+        } catch (error) {
+          // Index may not exist yet — that's fine
+          if ((error as any)?.statusCode !== 404) {
+            throw error;
+          }
+        }
+
+        // Delete the custom group document
+        await client.delete({
+          index: CUSTOM_GROUPS_INDEX,
+          id: uid,
+          refresh: 'wait_for',
+        });
+
+        deps.logger.info(`Custom group deleted: uid=${uid}`);
+
+        return response.ok({ body: { message: 'Custom group deleted successfully' } });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        deps.logger.error(`Failed to delete custom group: ${errorMessage}`, { error });
+
+        return response.customError({
+          statusCode: 500,
+          body: {
+            message: `Failed to delete custom group: ${errorMessage}`,
             attributes: { details: error instanceof Error ? error.toString() : String(error) },
           },
         });
