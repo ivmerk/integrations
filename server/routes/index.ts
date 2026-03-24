@@ -147,12 +147,19 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           })),
           rules_file: schema.maybe(schema.string()),
           decoders_file: schema.maybe(schema.string()),
+          skip_wazuh: schema.boolean({ defaultValue: false }),
         }),
       },
     },
     async (context, request, response) => {
       try {
-        const { rules_file, decoders_file, allowed_ips } = request.body;
+        const { rules_file, decoders_file, allowed_ips, skip_wazuh } = request.body;
+
+        let wazuhApi: ReturnType<typeof createWazuhApiClient> | null = null;
+
+        if (skip_wazuh) {
+          deps.logger.info('Device create: skip_wazuh=true, skipping Wazuh Manager interactions');
+        }
 
         // Validate that rules_file exists on disk
         if (rules_file) {
@@ -178,68 +185,62 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           }
         }
 
-        // Build Wazuh API client using the OSD server's actual bound address.
-        const rawCookie = request.headers.cookie;
-        const wazuhHeaders: Record<string, string> = {};
-        if (rawCookie) {
-          wazuhHeaders.cookie = Array.isArray(rawCookie) ? rawCookie.join('; ') : rawCookie;
-        }
-        deps.logger.info(`Device create: cookie present=${!!rawCookie}`);
-        const wazuhApi = createWazuhApiClient({ baseUrl: deps.baseUrl, headers: wazuhHeaders });
-
-        deps.logger.info('Device create: logging in to Wazuh Manager');
-        await wazuhApi.login();
-        deps.logger.info('Device create: login OK');
-
-        // Upload rules file to Wazuh Manager
-        if (rules_file) {
-          deps.logger.info(`Device create: uploading rules file ${rules_file}`);
-          const rulesContent = await readFileContent(`${CONFIGURATION_FILES_PATH}${rules_file}`);
-          try {
-            await wazuhApi.uploadRulesFile(rulesContent);
-            deps.logger.info(`Device create: rules file uploaded`);
-          } catch (uploadErr) {
-            // Wazuh may return an XML validation warning even when the file is
-            // successfully written to disk — treat this as a non-fatal warning.
-            deps.logger.warn(`Device create: rules file upload warning (file written): ${(uploadErr as Error).message}`);
+        if (!skip_wazuh) {
+          // Build Wazuh API client using the OSD server's actual bound address.
+          const rawCookie = request.headers.cookie;
+          const wazuhHeaders: Record<string, string> = {};
+          if (rawCookie) {
+            wazuhHeaders.cookie = Array.isArray(rawCookie) ? rawCookie.join('; ') : rawCookie;
           }
-        }
+          deps.logger.info(`Device create: cookie present=${!!rawCookie}`);
+          wazuhApi = createWazuhApiClient({ baseUrl: deps.baseUrl, headers: wazuhHeaders });
 
-        // Upload decoders file to Wazuh Manager
-        if (decoders_file) {
-          deps.logger.info(`Device create: uploading decoders file ${decoders_file}`);
-          const decodersContent = await readFileContent(`${CONFIGURATION_FILES_PATH}${decoders_file}`);
-          try {
-            await wazuhApi.uploadDecoderFile(decodersContent);
-            deps.logger.info(`Device create: decoders file uploaded`);
-          } catch (uploadErr) {
-            deps.logger.warn(`Device create: decoders file upload warning (file written): ${(uploadErr as Error).message}`);
+          deps.logger.info('Device create: logging in to Wazuh Manager');
+          await wazuhApi.login();
+          deps.logger.info('Device create: login OK');
+
+          // Upload rules file to Wazuh Manager
+          if (rules_file) {
+            deps.logger.info(`Device create: uploading rules file ${rules_file}`);
+            const rulesContent = await readFileContent(`${CONFIGURATION_FILES_PATH}${rules_file}`);
+            try {
+              await wazuhApi.uploadRulesFile(rulesContent);
+              deps.logger.info(`Device create: rules file uploaded`);
+            } catch (uploadErr) {
+              deps.logger.warn(`Device create: rules file upload warning (file written): ${(uploadErr as Error).message}`);
+            }
           }
+
+          // Upload decoders file to Wazuh Manager
+          if (decoders_file) {
+            deps.logger.info(`Device create: uploading decoders file ${decoders_file}`);
+            const decodersContent = await readFileContent(`${CONFIGURATION_FILES_PATH}${decoders_file}`);
+            try {
+              await wazuhApi.uploadDecoderFile(decodersContent);
+              deps.logger.info(`Device create: decoders file uploaded`);
+            } catch (uploadErr) {
+              deps.logger.warn(`Device create: decoders file upload warning (file written): ${(uploadErr as Error).message}`);
+            }
+          }
+
+          // Read ossec.conf.xml template from disk
+          deps.logger.info('Device create: reading ossec.conf.xml');
+          let ossecBlock = await readFileContent(`${CONFIGURATION_FILES_PATH}${SCOPD_OSSEC_CONF_FILE_NAME}`);
+
+          if (allowed_ips) {
+            ossecBlock = applyAllowedIps(ossecBlock, allowed_ips);
+          }
+
+          // Get current Wazuh Manager configuration, inject ossec block, and re-upload
+          deps.logger.info('Device create: getting Wazuh Manager config');
+          const confFileContent = await wazuhApi.getManagerConfig();
+          deps.logger.info('Device create: injecting ossec block and uploading config');
+          const updatedConf = injectOssecBlock(confFileContent, ossecBlock);
+          await wazuhApi.uploadManagerConfig(updatedConf);
+          deps.logger.info('Device create: Wazuh Manager config updated');
         }
 
-        // Read ossec.conf.xml template from disk
-        deps.logger.info('Device create: reading ossec.conf.xml');
-        let ossecBlock = await readFileContent(`${CONFIGURATION_FILES_PATH}${SCOPD_OSSEC_CONF_FILE_NAME}`);
-
-        // Inject allowed_ips into the <allowed-ips> tag if provided; otherwise use template default
-        if (allowed_ips) {
-          ossecBlock = applyAllowedIps(ossecBlock, allowed_ips);
-        }
-
-        // Get current Wazuh Manager configuration, inject ossec block, and re-upload
-        deps.logger.info('Device create: getting Wazuh Manager config');
-        const confFileContent = await wazuhApi.getManagerConfig();
-        deps.logger.info(`Device create: got config len=${confFileContent.length} start=${confFileContent.substring(0, 60).replace(/\n/g, ' ')}`);
-        deps.logger.info('Device create: injecting ossec block and uploading config');
-        const updatedConf = injectOssecBlock(confFileContent, ossecBlock);
-        deps.logger.info(`Device create: uploading config len=${updatedConf.length}`);
-        await wazuhApi.uploadManagerConfig(updatedConf);
-        deps.logger.info('Device create: Wazuh Manager config updated');
-
-        // Create device document in OpenSearch before restarting Wazuh Manager.
-        // Restart is fired asynchronously so it does not block the response —
-        // the Wazuh Manager restart can disrupt the OSD connection and prevent
-        // the response from being sent if awaited here.
+        // Create device document in OpenSearch.
         const client = context.core.opensearch.client.asCurrentUser;
         const uid = generateUlid();
         const now = new Date().toISOString();
@@ -252,6 +253,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           allowed_ips: request.body.allowed_ips ?? null,
           rules_file: request.body.rules_file ?? null,
           decoders_file: request.body.decoders_file ?? null,
+          skip_wazuh: skip_wazuh,
           created_at: now,
         };
 
@@ -262,15 +264,17 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           refresh: 'wait_for',
         });
 
-        deps.logger.info(`Device create: indexed uid=${uid}, scheduling Wazuh Manager restart`);
+        deps.logger.info(`Device create: indexed uid=${uid}`);
 
-        // Defer restart until after the response is sent — restartManager triggers a Wazuh Manager
-        // process restart that can disrupt the OSD HTTP connection if initiated too early.
-        setImmediate(() => {
-          wazuhApi.restartManager().catch((err: Error) => {
-            deps.logger.error(`Device create: Wazuh Manager restart failed: ${err.message}`, { err });
+        if (!skip_wazuh && wazuhApi) {
+          // Defer restart until after the response is sent
+          const api = wazuhApi;
+          setImmediate(() => {
+            api.restartManager().catch((err: Error) => {
+              deps.logger.error(`Device create: Wazuh Manager restart failed: ${err.message}`, { err });
+            });
           });
-        });
+        }
 
         return response.ok({
           body: { uid },
@@ -323,39 +327,46 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           throw error;
         }
 
-        // 2. Build Wazuh API client and login
-        const rawCookie = request.headers.cookie;
-        const wazuhHeaders: Record<string, string> = {};
-        if (rawCookie) {
-          wazuhHeaders.cookie = Array.isArray(rawCookie) ? rawCookie.join('; ') : rawCookie;
+        const deviceSkipWazuh = !!device.skip_wazuh;
+        let wazuhApi: ReturnType<typeof createWazuhApiClient> | null = null;
+
+        if (!deviceSkipWazuh) {
+          // 2. Build Wazuh API client and login
+          const rawCookie = request.headers.cookie;
+          const wazuhHeaders: Record<string, string> = {};
+          if (rawCookie) {
+            wazuhHeaders.cookie = Array.isArray(rawCookie) ? rawCookie.join('; ') : rawCookie;
+          }
+          wazuhApi = createWazuhApiClient({ baseUrl: deps.baseUrl, headers: wazuhHeaders });
+
+          deps.logger.info('Device delete: logging in to Wazuh Manager');
+          await wazuhApi.login();
+          deps.logger.info('Device delete: login OK');
+
+          // 3. Delete rules file from Wazuh Manager
+          if (device.rules_file) {
+            deps.logger.info(`Device delete: deleting rules file ${device.rules_file}`);
+            await wazuhApi.deleteRulesFile(device.rules_file);
+            deps.logger.info('Device delete: rules file deleted');
+          }
+
+          // 4. Delete decoders file from Wazuh Manager
+          if (device.decoders_file) {
+            deps.logger.info(`Device delete: deleting decoders file ${device.decoders_file}`);
+            await wazuhApi.deleteDecoderFile(device.decoders_file);
+            deps.logger.info('Device delete: decoders file deleted');
+          }
+
+          // 5. Remove the matching <remote> block from ossec.conf and re-upload
+          deps.logger.info('Device delete: getting Wazuh Manager config');
+          const confFileContent = await wazuhApi.getManagerConfig();
+          deps.logger.info('Device delete: removing ossec remote block and uploading config');
+          const updatedConf = removeOssecRemoteBlock(confFileContent, device.connection);
+          await wazuhApi.uploadManagerConfig(updatedConf);
+          deps.logger.info('Device delete: Wazuh Manager config updated');
+        } else {
+          deps.logger.info('Device delete: skip_wazuh=true, skipping Wazuh Manager interactions');
         }
-        const wazuhApi = createWazuhApiClient({ baseUrl: deps.baseUrl, headers: wazuhHeaders });
-
-        deps.logger.info('Device delete: logging in to Wazuh Manager');
-        await wazuhApi.login();
-        deps.logger.info('Device delete: login OK');
-
-        // 3. Delete rules file from Wazuh Manager
-        if (device.rules_file) {
-          deps.logger.info(`Device delete: deleting rules file ${device.rules_file}`);
-          await wazuhApi.deleteRulesFile(device.rules_file);
-          deps.logger.info('Device delete: rules file deleted');
-        }
-
-        // 4. Delete decoders file from Wazuh Manager
-        if (device.decoders_file) {
-          deps.logger.info(`Device delete: deleting decoders file ${device.decoders_file}`);
-          await wazuhApi.deleteDecoderFile(device.decoders_file);
-          deps.logger.info('Device delete: decoders file deleted');
-        }
-
-        // 5. Remove the matching <remote> block from ossec.conf and re-upload
-        deps.logger.info('Device delete: getting Wazuh Manager config');
-        const confFileContent = await wazuhApi.getManagerConfig();
-        deps.logger.info('Device delete: removing ossec remote block and uploading config');
-        const updatedConf = removeOssecRemoteBlock(confFileContent, device.connection);
-        await wazuhApi.uploadManagerConfig(updatedConf);
-        deps.logger.info('Device delete: Wazuh Manager config updated');
 
         // 6. Delete document from OpenSearch
         await client.delete({
@@ -363,14 +374,17 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           id: uid,
           refresh: 'wait_for',
         });
-        deps.logger.info(`Device delete: document removed uid=${uid}, scheduling restart`);
+        deps.logger.info(`Device delete: document removed uid=${uid}`);
 
-        // 7. Defer restart until after the response is sent
-        setImmediate(() => {
-          wazuhApi.restartManager().catch((err: Error) => {
-            deps.logger.error(`Device delete: Wazuh Manager restart failed: ${err.message}`, { err });
+        if (!deviceSkipWazuh && wazuhApi) {
+          // 7. Defer restart until after the response is sent
+          const api = wazuhApi;
+          setImmediate(() => {
+            api.restartManager().catch((err: Error) => {
+              deps.logger.error(`Device delete: Wazuh Manager restart failed: ${err.message}`, { err });
+            });
           });
-        });
+        }
 
         // 8. Return 200
         return response.ok({ body: { message: 'Device deleted successfully' } });
@@ -593,7 +607,7 @@ export function defineRoutes(router: IRouter, deps: RouteDependencies) {
           await client.deleteByQuery({
             index: DEVICES_INDEX,
             body: {
-              query: { term: { 'groups_filter.keyword': group.value } },
+              query: { term: { 'groups_filter': group.value } },
             },
             refresh: true,
           });

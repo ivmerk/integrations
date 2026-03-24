@@ -141,6 +141,7 @@ export const DevicesGroupPage = ({
   const handleSubmit = async () => {
     if (modalFilterIndex === null) return;
     const filter = allFilters[modalFilterIndex];
+    const isCustom = !!(filter as any).customGroupUid;
     setIsSubmitting(true);
     try {
       await http.post('/api/integrations/device', {
@@ -149,6 +150,7 @@ export const DevicesGroupPage = ({
           connection: 'syslog',
           groups_filter: filter.value,
           allowed_ips: formIp,
+          skip_wazuh: isCustom,
         }),
       });
       closeModal();
@@ -297,7 +299,7 @@ export const DevicesGroupPage = ({
                                     <EuiFlexItem grow={false}>
                                       <EuiButtonEmpty
                                         size="s"
-                                        href={`/app/integration-${filter.value!.replace(/_/g, '-')}`}
+                                        href={`/app/integration-dashboard#/overview?tab=dynamic&tabView=dashboard&ruleGroup=${filter.value}&_a=(filters:!(),query:(language:kuery,query:''))&_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-24h,to:now))`}
                                         iconType="dashboardApp"
                                       >
                                         Dashboard
