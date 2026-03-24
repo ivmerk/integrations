@@ -53,7 +53,7 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
       id: 'network-infrastructure-settings',
       get title() {
         return i18n.translate('core.ui.integrationsNavListNetworkInfrastructureSettings.label', {
-          defaultMessage: 'Routing & Switching',
+          defaultMessage: 'Routers & Switches',
         });
       },
       category: {
@@ -77,7 +77,7 @@ export class IntegrationsPlugin implements Plugin<IntegrationsPluginSetup, Integ
             text: 'Integrations',
           },
           {
-            text: 'Routing & Switching',
+            text: 'Routers & Switches',
           },
         ]);
         // Load dashboard application bundle
