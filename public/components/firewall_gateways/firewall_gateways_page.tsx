@@ -44,6 +44,18 @@ const firewallGatewaysGroupsFilters = [
     value: 'fortigate',
     description: 'Enter the hostname or identifier for your FortiGate firewall.',
   },
+  {
+    title: 'pfSense',
+    icon: 'pfSense',
+    models: [],
+    value: null,
+  },
+  {
+    title: 'Kerio Control',
+    icon: 'kerioControl',
+    models: [],
+    value: null,
+  },
 ];
 export const FirewallGatewaysPage = ({ basename, notifications, http }: FirewallGatewaysPageProps) => (
   <DevicesGroupPage
