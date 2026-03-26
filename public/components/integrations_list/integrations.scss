@@ -12,11 +12,12 @@
 .integration-item {
   flex-grow: 0 !important;
   flex-shrink: 0 !important;
-  flex-basis: calc(25% - 12px) !important;
+  flex-basis: 180px !important;
   min-width: 180px;
-  max-width: calc(25% - 12px);
+  max-width: 180px;
   margin-bottom: 16px;
 }
+
 // Integration card
 .integration-card {
   position: relative;
@@ -44,6 +45,19 @@
     gap: 16px;
   }
 
+  // Заголовок карточки — максимум 2 строки
+  h3 {
+    min-height: 2.6em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    text-align: center;
+    width: 100%;
+  }
+
   .integration-logo {
     font-size: 20px;
     margin-right: 12px;
@@ -68,8 +82,9 @@
 
 // Responsive adjustments
 @media (max-width: 768px) {
-  .integrations-grid {
-    max-width: 100%;
+  .integration-item {
+    flex-basis: calc(50% - 12px) !important;
+    max-width: calc(50% - 12px);
   }
 
   .integration-card {
@@ -95,6 +110,13 @@
   }
 }
 
+@media (max-width: 480px) {
+  .integration-item {
+    flex-basis: 100% !important;
+    max-width: 100%;
+  }
+}
+
 // Button overrides
 .euiButton {
   &--fill {
@@ -103,15 +125,11 @@
 }
 
 // Стилизация состояний (Status / Buttons)
-
-// 1. Статус "Connected" (Зеленая точка через EuiHealth)
 .card-status {
-  // EUI сам стилизует EuiHealth, но можно подправить шрифт
   font-weight: 500;
   color: #333;
 }
 
-// 2. Кнопка "Connect" (Используем EuiButton, но можем допилить стили)
 .connect-btn {
   background: transparent;
   border: 1px solid #98a2b3;
@@ -129,7 +147,6 @@
   }
 }
 
-// 3. Кнопка "Configure manually" (Кастомная серая кнопка)
 .manual-btn {
   background: transparent;
   border: 1px solid #98a2b3;
@@ -146,6 +163,7 @@
     background-color: rgba(0, 0, 0, 0.05);
   }
 }
+
 .forward-btn {
   background: transparent;
   border: 1px solid #98a2b3;

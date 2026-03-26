@@ -31,6 +31,7 @@ import {
 } from '@elastic/eui';
 import { CoreStart } from '../../../../src/core/public';
 import {IntegrationIcon} from "./integrations_list/integration_icon";
+import './integrations_list/integrations.scss';
 
 interface Device {
   name: string;
