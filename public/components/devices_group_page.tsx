@@ -54,7 +54,6 @@ interface CustomGroup {
   uid: string;
   value: string;
   title: string;
-  models: string[];
   description: string;
   page: string;
   icon: string;
@@ -89,7 +88,6 @@ export const DevicesGroupPage = ({
   // Custom group creation dialog state
   const [isCustomGroupModalOpen, setIsCustomGroupModalOpen] = useState(false);
   const [customGroupName, setCustomGroupName] = useState('');
-  const [customGroupModels, setCustomGroupModels] = useState('');
   const [customGroupDescription, setCustomGroupDescription] = useState('');
   const [isCustomGroupSubmitting, setIsCustomGroupSubmitting] = useState(false);
 
@@ -123,7 +121,7 @@ export const DevicesGroupPage = ({
     ...filters,
     ...customGroups.map((g) => ({
       title: g.title,
-      models: g.models,
+      models: [],
       value: g.value,
       icon: g.icon,
       description: g.description,
@@ -165,7 +163,6 @@ export const DevicesGroupPage = ({
 
   const openCustomGroupModal = () => {
     setCustomGroupName('');
-    setCustomGroupModels('');
     setCustomGroupDescription('');
     setIsCustomGroupModalOpen(true);
   };
@@ -176,16 +173,11 @@ export const DevicesGroupPage = ({
     setIsCustomGroupSubmitting(true);
     try {
       const decodedPageTitle = pageTitle.replace(/&amp;/g, '&');
-      const models = customGroupModels
-        .split(',')
-        .map((m) => m.trim())
-        .filter(Boolean);
 
       await http.post('/api/integrations/custom-group', {
         body: JSON.stringify({
           value: customGroupName,
           title: `${decodedPageTitle} Custom`,
-          models,
           description: customGroupDescription,
           page: pageId,
         }),
@@ -451,17 +443,6 @@ export const DevicesGroupPage = ({
                       onChange={(e) => setCustomGroupName(e.target.value)}
                       placeholder="e.g. my-custom-device"
                       isInvalid={customGroupName.length > 0 && !isValidCustomGroupName}
-                    />
-                  </EuiFormRow>
-                  <EuiSpacer size="m" />
-                  <EuiFormRow
-                    label="Models"
-                    helpText="Comma-separated list of supported models"
-                  >
-                    <EuiFieldText
-                      value={customGroupModels}
-                      onChange={(e) => setCustomGroupModels(e.target.value)}
-                      placeholder="e.g. Model A, Model B"
                     />
                   </EuiFormRow>
                   <EuiSpacer size="m" />
