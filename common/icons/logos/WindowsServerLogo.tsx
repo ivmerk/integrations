@@ -4,24 +4,16 @@ type Props = React.SVGProps<SVGSVGElement>;
 
 export const WindowsServerLogo = (props: Props) => (
   <svg
-    width={192}
-    height={100}
-    viewBox="0 0 192 100"
+    width={32}
+    height={32}
+    viewBox="-0.5 0 257 257"
     xmlns="http://www.w3.org/2000/svg"
-    fill="none"
+    preserveAspectRatio="xMidYMid"
     {...props}
   >
-    <rect x="16" y="10" width="160" height="80" rx="12" fill="#00ADEF" />
-    <text
-      x="96"
-      y="58"
-      textAnchor="middle"
-      fontFamily="Arial, sans-serif"
-      fontSize="18"
-      fontWeight="bold"
-      fill="#FFFFFF"
-    >
-      Windows
-    </text>
+    <path
+      d="M0,36.3573818 L104.619084,22.1093454 L104.664817,123.02292 L0.0955693151,123.618411 L0,36.3573818 Z M104.569248,134.650129 L104.650452,235.651651 L0.0812046021,221.274919 L0.0753414539,133.972642 L104.569248,134.650129 Z M117.25153,20.2454506 L255.967753,6.21724894e-15 L255.967753,121.739477 L117.25153,122.840723 L117.25153,20.2454506 Z M256,135.599959 L255.96746,256.791232 L117.251237,237.213007 L117.056874,135.373055 L256,135.599959 Z"
+      fill="#00ADEF"
+    />
   </svg>
 );

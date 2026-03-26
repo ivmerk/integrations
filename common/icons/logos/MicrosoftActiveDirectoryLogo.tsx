@@ -4,24 +4,17 @@ type Props = React.SVGProps<SVGSVGElement>;
 
 export const MicrosoftActiveDirectoryLogo = (props: Props) => (
   <svg
-    width={192}
-    height={100}
-    viewBox="0 0 192 100"
+    width={32}
+    height={32}
+    viewBox="0 0 24 24"
     xmlns="http://www.w3.org/2000/svg"
-    fill="none"
     {...props}
   >
-    <rect x="16" y="10" width="160" height="80" rx="12" fill="#0078D4" />
-    <text
-      x="96"
-      y="58"
-      textAnchor="middle"
-      fontFamily="Arial, sans-serif"
-      fontSize="24"
-      fontWeight="bold"
-      fill="#FFFFFF"
-    >
-      AD
-    </text>
+    <polygon points="11 2 11 22 21 14 11 2" fill="#669df6" />
+    <polygon points="11 2 10.02 3.17 18.87 13.78 10.07 20.83 11.01 22 21 13.99 11 2" fill="#4285f4" />
+    <path d="M11,2,7,6.75a3.11,3.11,0,0,1,1.11,1L11,4.34V2Z" fill="#669df6" />
+    <path d="M8.35,18a2.93,2.93,0,0,1-.92,1.19L11,22h0V20.08Z" fill="#669df6" />
+    <path d="M6,10A1,1,0,1,1,7,9a1,1,0,0,1-1,1M6,6A3,3,0,1,0,9,9,3,3,0,0,0,6,6" fill="#aecbfa" />
+    <path d="M6,18a1,1,0,1,1,1-1,1,1,0,0,1-1,1m0-4a3,3,0,1,0,3,3,3,3,0,0,0-3-3" fill="#aecbfa" />
   </svg>
 );
