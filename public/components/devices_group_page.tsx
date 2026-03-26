@@ -172,12 +172,10 @@ export const DevicesGroupPage = ({
   const handleCustomGroupSubmit = async () => {
     setIsCustomGroupSubmitting(true);
     try {
-      const decodedPageTitle = pageTitle.replace(/&amp;/g, '&');
-
       await http.post('/api/integrations/custom-group', {
         body: JSON.stringify({
           value: customGroupName,
-          title: `${decodedPageTitle} Custom`,
+          title: customGroupName,
           description: customGroupDescription,
           page: pageId,
         }),
@@ -233,6 +231,7 @@ export const DevicesGroupPage = ({
                                 className="integration-content"
                                 direction="column"
                                 alignItems="center"
+                                justifyContent="flexStart"
                                 gutterSize="s"
                               >
                                 {isCustom && (
