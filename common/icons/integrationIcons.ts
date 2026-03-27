@@ -86,7 +86,7 @@ export const integrationIcons = {
   apache: ApacheLogo,
   zabbix: ZabbixLogo,
   safeticaDlp: SafeticaDlpLogo,
-  scopdDlp: ScopdDlpLogo,
+  scopdDlp: ScopdLogo,
   bitrix24: Bitrix24Logo,
   oneCPlatform: OneCPlatformLogo,
   microsoftSqlServer: MicrosoftSqlServerLogo,

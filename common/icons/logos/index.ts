@@ -38,7 +38,6 @@ export {NginxLogo} from './NginxLogo';
 export {ApacheLogo} from './ApacheLogo';
 export {ZabbixLogo} from './ZabbixLogo';
 export {SafeticaDlpLogo} from './SafeticaDlpLogo';
-export {ScopdDlpLogo} from './ScopdDlpLogo';
 export {Bitrix24Logo} from './Bitrix24Logo';
 export {OneCPlatformLogo} from './OneCPlatformLogo';
 export {MicrosoftSqlServerLogo} from './MicrosoftSqlServerLogo';
