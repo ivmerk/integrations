@@ -4,24 +4,12 @@ type Props = React.SVGProps<SVGSVGElement>;
 
 export const HpeIloLogo = (props: Props) => (
   <svg
-    width={192}
-    height={100}
-    viewBox="0 0 192 100"
     xmlns="http://www.w3.org/2000/svg"
-    fill="none"
+    strokeWidth={36}
+    viewBox="0 0 630 180"
     {...props}
   >
-    <rect x="16" y="10" width="160" height="80" rx="12" fill="#01A982" />
-    <text
-      x="96"
-      y="58"
-      textAnchor="middle"
-      fontFamily="Arial, sans-serif"
-      fontSize="20"
-      fontWeight="bold"
-      fill="#FFFFFF"
-    >
-      HPE iLO
-    </text>
+    <path fill="none" stroke="#000" d="M18 180V0m154 180V0M18 89h137m95 91V0m0 18h102a32 32 0 0 1 0 100H250m222-67V18h158"/>
+    <path fill="none" stroke="#03a883" d="M630 162H472V86h158"/>
   </svg>
 );
